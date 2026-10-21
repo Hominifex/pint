@@ -143,6 +143,26 @@
     border-radius:20px; padding:20px;
   }
   .mkopf{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .mprofil{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+  .mavatar{width:46px;height:46px;flex:none;border-radius:50%;border:1px solid var(--line);
+    background:#1b1b1f center/cover no-repeat;display:flex;align-items:center;justify-content:center;
+    font-size:18px;color:var(--gold);cursor:pointer}
+  .mprofiltext{min-width:0}
+  .mklein{background:none;border:0;color:var(--muted);font-size:11.5px;padding:0;margin:2px 10px 0 0;
+    cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:2px}
+  #start{position:fixed;inset:0;z-index:1400;display:none;background:rgba(6,6,7,.93);
+    backdrop-filter:blur(8px);overflow:auto;padding:18px}
+  #start.offen{display:block}
+  #start .skarte{max-width:400px;margin:12vh auto 0;background:var(--sheet);border:1px solid var(--line);
+    border-radius:22px;padding:26px}
+  #start h2{font-size:20px;margin:0 0 6px;letter-spacing:-.02em}
+  #start p{font-size:13px;color:var(--muted);line-height:1.55;margin:0 0 18px}
+  #start input{width:100%;padding:14px;border-radius:13px;border:1px solid var(--line);
+    background:var(--sheet2);color:var(--ink);font-size:16px;box-sizing:border-box;font-family:inherit}
+  #start .sknopf{width:100%;margin-top:14px;padding:14px;border:0;border-radius:13px;background:var(--gold);
+    color:#1a1408;font-size:14.5px;font-weight:650;cursor:pointer;font-family:inherit}
+  #start .sweiter{width:100%;margin-top:6px;padding:10px;border:0;background:none;color:var(--muted);
+    font-size:12.5px;cursor:pointer;font-family:inherit}
   .mkopf h3{margin:0;font-size:19px;letter-spacing:-.02em}
   .mkopf .x{background:none;border:0;color:var(--muted);font-size:24px;line-height:1;cursor:pointer}
   .mzahlen{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
@@ -348,6 +368,26 @@
     border-radius:20px; padding:20px;
   }
   .mkopf{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .mprofil{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+  .mavatar{width:46px;height:46px;flex:none;border-radius:50%;border:1px solid var(--line);
+    background:#1b1b1f center/cover no-repeat;display:flex;align-items:center;justify-content:center;
+    font-size:18px;color:var(--gold);cursor:pointer}
+  .mprofiltext{min-width:0}
+  .mklein{background:none;border:0;color:var(--muted);font-size:11.5px;padding:0;margin:2px 10px 0 0;
+    cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:2px}
+  #start{position:fixed;inset:0;z-index:1400;display:none;background:rgba(6,6,7,.93);
+    backdrop-filter:blur(8px);overflow:auto;padding:18px}
+  #start.offen{display:block}
+  #start .skarte{max-width:400px;margin:12vh auto 0;background:var(--sheet);border:1px solid var(--line);
+    border-radius:22px;padding:26px}
+  #start h2{font-size:20px;margin:0 0 6px;letter-spacing:-.02em}
+  #start p{font-size:13px;color:var(--muted);line-height:1.55;margin:0 0 18px}
+  #start input{width:100%;padding:14px;border-radius:13px;border:1px solid var(--line);
+    background:var(--sheet2);color:var(--ink);font-size:16px;box-sizing:border-box;font-family:inherit}
+  #start .sknopf{width:100%;margin-top:14px;padding:14px;border:0;border-radius:13px;background:var(--gold);
+    color:#1a1408;font-size:14.5px;font-weight:650;cursor:pointer;font-family:inherit}
+  #start .sweiter{width:100%;margin-top:6px;padding:10px;border:0;background:none;color:var(--muted);
+    font-size:12.5px;cursor:pointer;font-family:inherit}
   .mkopf h3{margin:0;font-size:19px;letter-spacing:-.02em}
   .mkopf .x{background:none;border:0;color:var(--muted);font-size:24px;line-height:1;cursor:pointer}
   .mzahlen{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
@@ -550,10 +590,28 @@
   </div>
 </div>
 
+<div id="start">
+  <div class="skarte">
+    <h2>Wie sollen wir dich nennen?</h2>
+    <p>Der Name steht oben in deinem Menü — aus „Dein Pint" wird „Nicks Pint".
+    Du kannst ihn jederzeit wieder ändern.</p>
+    <input id="s_name" maxlength="18" placeholder="z. B. Nick" autocomplete="nickname">
+    <button class="sknopf" onclick="startFertig(false)">Los geht's</button>
+    <button class="sweiter" onclick="startFertig(true)">Ohne Namen weiter</button>
+  </div>
+</div>
+
 <div id="menu">
   <div class="mkarte">
     <div class="mkopf">
-      <h3>Dein Pint</h3>
+      <div class="mprofil">
+        <div class="mavatar" id="m_avatar" onclick="profilBild()" title="Profilbild wählen">🍺</div>
+        <div class="mprofiltext">
+          <h3 id="m_titel">Dein Pint</h3>
+          <button class="mklein" onclick="nameAendern()">Name ändern</button>
+          <button class="mklein" onclick="bildWeg()">Bild entfernen</button>
+        </div>
+      </div>
       <button class="x" onclick="menue()">×</button>
     </div>
     <div class="mzahlen">
@@ -897,6 +955,72 @@ function ueber(){
   menue();
   document.getElementById("ueber").classList.add("offen");
 }
+function profilMalen(){
+  const t = document.getElementById("m_titel");
+  const a = document.getElementById("m_avatar");
+  if(t) t.textContent = state.name ? state.name + "’s Pint" : "Dein Pint";
+  if(a){
+    if(state.bild){
+      a.style.backgroundImage = 'url("' + state.bild + '")';
+      a.textContent = "";
+    } else {
+      a.style.backgroundImage = "none";
+      a.textContent = state.name ? state.name.charAt(0).toUpperCase() : "🍺";
+    }
+  }
+}
+function nameAendern(){
+  const n = prompt("Wie sollen wir dich nennen?", state.name || "");
+  if(n === null) return;
+  const v = n.trim().slice(0,18);
+  if(v) state.name = v; else delete state.name;
+  speichern(); profilMalen();
+}
+function bildWeg(){
+  if(!state.bild) return;
+  delete state.bild;
+  speichern(); profilMalen();
+}
+function profilBild(){
+  const i = document.createElement("input");
+  i.type = "file"; i.accept = "image/*"; i.style.display = "none";
+  document.body.appendChild(i);
+  i.onchange = () => {
+    const f = i.files && i.files[0];
+    if(!f) { i.remove(); return; }
+    const r = new FileReader();
+    r.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const s = Math.min(img.width, img.height);
+        const c = document.createElement("canvas");
+        c.width = c.height = 160;
+        const ctx = c.getContext("2d");
+        ctx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, 160, 160);
+        state.bild = c.toDataURL("image/jpeg", 0.82);
+        speichern(); profilMalen();
+      };
+      img.src = r.result;
+    };
+    r.readAsDataURL(f);
+    i.remove();
+  };
+  i.click();
+}
+function startZeigen(){
+  if(state.gesehen) return;
+  const f = document.getElementById("s_name");
+  if(f) setTimeout(() => f.focus(), 400);
+  document.getElementById("start").classList.add("offen");
+}
+function startFertig(ohne){
+  const f = document.getElementById("s_name");
+  const n = ohne ? "" : (f && f.value || "").trim().slice(0,18);
+  if(n) state.name = n;
+  state.gesehen = true;
+  speichern(); profilMalen();
+  document.getElementById("start").classList.remove("offen");
+}
 function specialMelden(){
   const l = aktuell; if(!l) return;
   const t = prompt("Was gibt es hier? Zum Beispiel: Guinness + Los, 2 für 1 dienstags, Happy Hour bis 19 Uhr.");
@@ -1157,7 +1281,7 @@ function neuerPub(){
   document.addEventListener(ev, e => { if(!e.target.closest("#karte")) e.preventDefault(); }, {passive:false}));
 document.addEventListener("dblclick", e => { if(!e.target.closest("#karte")) e.preventDefault(); }, {passive:false});
 
-window.addEventListener("load",()=>{ initKarte(); rendern(); zaehlePints();
+window.addEventListener("load",()=>{ initKarte(); rendern(); zaehlePints(); profilMalen(); startZeigen();
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').then(reg => reg.update()).catch(()=>{});
     document.addEventListener('visibilitychange', () => {
