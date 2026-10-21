@@ -22,10 +22,12 @@
   }
   /* Bierglas-Marker */
   .pubpin-wrap{background:none;border:0}
-  .pubpin{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    background:#f2efe6;border:3px solid;box-shadow:0 3px 10px rgba(0,0,0,.6);transition:transform .12s ease}
+  .pubpin{position:relative;display:flex;align-items:center;justify-content:center;
+    filter:drop-shadow(0 2px 5px rgba(0,0,0,.8));transition:transform .12s ease}
   .pubpin:hover{transform:scale(1.1)}
-  .pubpin svg{width:20px;height:20px;display:block}
+  .pubpin svg{width:100%;height:100%;display:block;overflow:visible}
+  .pubpin i{position:absolute;right:2px;bottom:2px;width:7px;height:7px;border-radius:50%;
+    border:1.5px solid #0a0a0b;box-shadow:0 0 0 1px rgba(10,10,11,.6)}
   #karte{position:fixed; inset:0; background:#0f0f11; touch-action:none}
   #sheet, #kopf, #detail, #menu, #stats, #ueber, #kontakt, #tour, #angebote, #umgebung{touch-action:manipulation}
   .maplibregl-ctrl-attrib{background:rgba(10,10,11,.75)!important; color:#6f6a63!important; font-size:9px!important}
