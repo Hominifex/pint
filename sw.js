@@ -1,4 +1,4 @@
-const CACHE = "pint-v27";
+const CACHE = "pint-v28";
 const ASSETS = ["./", "./index.html", "./manifest.json", "./logo-quadrat.png"];
 
 self.addEventListener("install", e => {

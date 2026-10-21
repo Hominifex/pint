@@ -3,6 +3,8 @@
 Karte der Pubs in Franken, die Guinness vom Fass zapfen — mit Preis, Telefon,
 Website, Speisekarte, Route und Pub-Score.
 
+Ein Projekt von **Nick F.**
+
 **Prototyp.** Die Daten (19 Pubs) sind von Hand recherchiert und teils ungeprüft;
 Preise sind noch lückenhaft. Neue Pubs kommen über OpenStreetMap-Suche in der App
 oder über Meldungen dazu.
