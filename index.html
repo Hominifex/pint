@@ -20,6 +20,12 @@
     font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     -webkit-font-smoothing:antialiased;
   }
+  /* Bierglas-Marker */
+  .pubpin-wrap{background:none;border:0}
+  .pubpin{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:#0e1014;border:3px solid;box-shadow:0 3px 10px rgba(0,0,0,.6);transition:transform .12s ease}
+  .pubpin:hover{transform:scale(1.1)}
+  .pubpin svg{width:20px;height:20px;display:block}
   #karte{position:fixed; inset:0; background:#0f0f11; touch-action:none}
   #sheet, #kopf, #detail, #menu, #stats, #ueber, #kontakt, #tour, #angebote, #umgebung{touch-action:manipulation}
   .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.78) contrast(.95) saturate(.45)}
@@ -860,13 +866,26 @@ function initKarte(){
   [0, 300, 900].forEach(t => setTimeout(() => karte.invalidateSize(), t));
 }
 
+function pintIcon(l){
+  return L.divIcon({
+    className: "pubpin-wrap",
+    iconSize: [34, 34],
+    iconAnchor: [17, 17],
+    html: `<div class="pubpin" style="border-color:${farbe(l)}">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="#f4f1ec" d="M6.6 3.4h10.8l-1.4 15.9A2.9 2.9 0 0 1 13.1 22h-2.2a2.9 2.9 0 0 1-2.9-2.7L6.6 3.4z"/>
+        <path fill="#c8a04a" d="M7.6 9.6h8.8l-.9 9.6a2.9 2.9 0 0 1-2.9 2.6h-1.2a2.9 2.9 0 0 1-2.9-2.6L7.6 9.6z"/>
+        <path fill="#ffffff" d="M7.1 5.6h9.8l-.4 3.4H7.5z"/>
+      </svg></div>`
+  });
+}
 function setzeMarker(l){
   if(!l.lat) return;
   const key = l.name + "|" + l.stadt;
-  if(marker[key]){ marker[key].setStyle({fillColor: farbe(l)}); return; }
-  const m = L.circleMarker([l.lat,l.lon],{radius:8,color:"#0a0a0b",weight:2.5,
-    fillColor:farbe(l),fillOpacity:1}).addTo(karte);
-  m.on("click", () => oeffne(l));
+  if(marker[key]){ marker[key].setIcon(pintIcon(l)); marker[key]._pub = l; return; }
+  const m = L.marker([l.lat,l.lon], {icon: pintIcon(l), keyboard:false, riseOnHover:true}).addTo(karte);
+  m._pub = l;
+  m.on("click", () => oeffne(m._pub || l));
   marker[key] = m;
 }
 
