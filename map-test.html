@@ -1460,8 +1460,10 @@ function neuerPub(){
   fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(st+', '+s+', Deutschland')}`)
     .then(r=>r.json()).then(res=>{
       const lat=res[0]?parseFloat(res[0].lat):null, lon=res[0]?parseFloat(res[0].lon):null;
-      state.neu.push({name:n,stadt:s,strasse:st,plz:"",tel:"",lat,lon,preis:null,bestaetigt:null});
+      const neuer = {name:n,stadt:s,strasse:st,plz:"",tel:"",lat,lon,preis:null,bestaetigt:null};
+      state.neu.push(neuer);
       speichern(); setzeMarker(alle().find(x=>x.name===n&&x.stadt===s)); rendern();
+      melde("pub", neuer, {p_notiz: st || null});
       log(`Neuer Pub · <b>${esc(n)}</b>`);
     });
 }
