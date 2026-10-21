@@ -877,18 +877,19 @@ function pintGroesse(){
 }
 function pintIcon(l){
   const g = Math.round(pintGroesse() * 1.2);
+  const k = farbe(l);
   return L.divIcon({
     className: "pubpin-wrap",
     iconSize: [g, g],
     iconAnchor: [g/2, g/2],
     html: `<div class="pubpin" style="width:${g}px;height:${g}px">
       <svg viewBox="0 0 24 24" aria-hidden="true" style="width:${g}px;height:${g}px">
-        <path fill="#0d0f12" stroke="#f2efe6" stroke-width="1.2" stroke-linejoin="round"
+        <path fill="#0d0f12" stroke="${k}" stroke-width="1.7" stroke-linejoin="round"
           d="M6.8 4.6h10.4l-1.4 14.7A2.9 2.9 0 0 1 12.9 22h-1.8a2.9 2.9 0 0 1-2.9-2.7L6.8 4.6z"/>
-        <path fill="#ffffff" stroke="#f2efe6" stroke-width="1.2" stroke-linejoin="round"
+        <path fill="#ffffff" stroke="${k}" stroke-width="1.7" stroke-linejoin="round"
           d="M6.4 2.6h11.2a1.2 1.2 0 0 1 1.2 1.3l-.2 2.4a1 1 0 0 1-1 .9H6.4a1 1 0 0 1-1-.9L5.2 3.9a1.2 1.2 0 0 1 1.2-1.3z"/>
         <path fill="#ffffff" opacity=".8" d="M8.2 8.6h1.9l-.8 10.9a1 1 0 0 1-.9.9z"/>
-      </svg><i style="background:${farbe(l)}"></i></div>`
+      </svg></div>`
   });
 }
 function setzeMarker(l){
