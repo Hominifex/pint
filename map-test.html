@@ -1540,9 +1540,12 @@ async function sbRpc(fn, args){
 }
 
 async function profilSichern(){
-  if(!state.name) return;
+  if(!state.name){
+    const n = prompt("Wie sollen dich deine Buddies nennen?", "");
+    if(n && n.trim()){ state.name = n.trim().slice(0, 18); speichern(); profilMalen(); }
+  }
   try{
-    const code = await sbRpc("profil_setzen", {p_geraet: geraet, p_name: state.name});
+    const code = await sbRpc("profil_setzen", {p_geraet: geraet, p_name: state.name || "Pint-Freund"});
     if(code){ state.code = code; speichern(); }
   }catch(e){}
 }
