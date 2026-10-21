@@ -924,6 +924,14 @@ function ueber(){
   menue();
   document.getElementById("ueber").classList.add("offen");
 }
+function specialMelden(){
+  const l = aktuell; if(!l) return;
+  const t = prompt("Was gibt es hier? Zum Beispiel: Guinness + Los, 2 für 1 dienstags, Happy Hour bis 19 Uhr.");
+  if(!t || !t.trim()) return;
+  if(!state.specials) state.specials = {};
+  state.specials[l.name + "|" + l.stadt] = {text: t.trim().slice(0,120), datum: Date.now()};
+  speichern(); oeffne(l);
+}
 function kontaktSchliessen(){ document.getElementById("kontakt").classList.remove("offen"); }
 function kontakt(){
   menue();
