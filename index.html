@@ -863,15 +863,25 @@ function initKarte(){
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,
     attribution:'&copy; OpenStreetMap'}).addTo(karte);
   alle().forEach(setzeMarker);
+  karte.on("zoomend", () => {
+    Object.keys(marker).forEach(k => { const m = marker[k]; if(m && m._pub) m.setIcon(pintIcon(m._pub)); });
+  });
   [0, 300, 900].forEach(t => setTimeout(() => karte.invalidateSize(), t));
 }
 
+function pintGroesse(){
+  const z = (karte && karte.getZoom) ? karte.getZoom() : 13;
+  return z <= 10 ? 18 : z <= 12 ? 22 : z <= 13 ? 26 : z <= 15 ? 31 : 38;
+}
 function pintIcon(l){
+  const n = pintGroesse();
+  const g = Math.round(n * 0.58);
   return L.divIcon({
     className: "pubpin-wrap",
-    iconSize: [34, 34],
-    iconAnchor: [17, 17],
-    html: `<div class="pubpin" style="border-color:${farbe(l)}">
+    iconSize: [n, n],
+    iconAnchor: [n/2, n/2],
+    html: `<div class="pubpin" style="border-color:${farbe(l)};width:${n}px;height:${n}px;border-width:${n >= 30 ? 3 : 2}px">
+      <svg viewBox="0 0 24 24" aria-hidden="true" style="width:${g}px;height:${g}px">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path fill="#f4f1ec" d="M6.6 3.4h10.8l-1.4 15.9A2.9 2.9 0 0 1 13.1 22h-2.2a2.9 2.9 0 0 1-2.9-2.7L6.6 3.4z"/>
         <path fill="#c8a04a" d="M7.6 9.6h8.8l-.9 9.6a2.9 2.9 0 0 1-2.9 2.6h-1.2a2.9 2.9 0 0 1-2.9-2.6L7.6 9.6z"/>
