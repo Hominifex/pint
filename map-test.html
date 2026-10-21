@@ -504,6 +504,7 @@
     <button class="btn prim" id="d_best" onclick="dBest()">Gibt's hier</button>
     <button class="btn sec" id="d_preisbtn" onclick="dPreis()">Preis melden</button>
   </div>
+  <button class="btn sec" id="d_praesenz" onclick="trinkeUmschalten()" style="margin-top:8px">🍻 Ich trinke hier</button>
   <button class="btn prim" id="d_trink" onclick="pintTrinken()"
           style="width:100%;margin-top:10px;background:var(--gold);color:#1a1408">🍺 Pint hier getrunken</button>
 </div>
@@ -568,6 +569,32 @@
       <p class="uklein">Ein Projekt von Nick F. · Prototyp · 19 Pubs in Franken · Preise noch
       lückenhaft · Daten lokal auf dem Gerät · Karte: OpenStreetMap · Feedback willkommen</p>
     </div>
+  </div>
+</div>
+
+<div id="buddy">
+  <div class="bkarte">
+    <div class="mkopf">
+      <div><h3>Pint-Buddy</h3><div class="uunter">Wer trinkt gerade wo</div></div>
+      <button class="x" onclick="buddySchliessen()">×</button>
+    </div>
+    <div class="bcode">
+      <div id="b_qr" style="width:96px;height:96px;flex:none;background:#f4f1ec;border-radius:8px;
+        display:flex;align-items:center;justify-content:center;overflow:hidden"></div>
+      <div style="min-width:0">
+        <div class="uklein" style="margin-bottom:4px">Dein Code</div>
+        <div class="zahl" id="b_code">—</div>
+        <button class="bknopf" style="margin-top:8px" onclick="codeKopieren()">Code kopieren</button>
+      </div>
+    </div>
+    <div class="uklein" style="padding:0 2px 10px">Freund zeigt seinen Code, du tippst ihn ein —
+    oder er scannt deinen QR-Code mit der Kamera.</div>
+    <input class="binput" id="b_neu" maxlength="6" placeholder="CODE">
+    <button class="mzeile" onclick="anfrageSenden()" style="justify-content:center">Anfrage senden <span>›</span></button>
+    <div id="b_anfragen"></div>
+    <div id="b_liste"></div>
+    <div class="uklein" style="padding:12px 2px 0">„Ich trinke hier" läuft nach vier Stunden von
+    selbst aus. Es gibt keinen Verlauf, keine Karte und keine Standortfreigabe im Hintergrund.</div>
   </div>
 </div>
 
@@ -667,6 +694,7 @@
     <button class="mzeile" onclick="pintTour()">🍺 Pint-Tour planen <span>›</span></button>
     <button class="mzeile" onclick="nurBesuchte()">🗺️ Nur besuchte Pubs <span>›</span></button>
     <button class="mzeile" onclick="teilen()">📸 Als Bild teilen <span>›</span></button>
+    <button class="mzeile" onclick="buddyPanel()">🍻 Pint-Buddy <span id="b_zahl"></span></button>
     <div class="mliste" id="m_liste"></div>
     <button class="mzeile" onclick="kontakt()">✉️ Kontakt &amp; Feedback <span>›</span></button>
     <button class="mzeile" onclick="ueber()">ℹ️ Über die App <span>›</span></button>
@@ -1475,12 +1503,144 @@ function neuerPub(){
       log(`Neuer Pub · <b>${esc(n)}</b>`);
     });
 }
+// ── Pint-Buddy ────────────────────────────────────────────────
+let buddyPoll = null, buddyAnfragen = [], buddyListe = [];
+
+async function sbRpc(fn, args){
+  const r = await fetch(SUPA_URL + "/rest/v1/rpc/" + fn, {
+    method:"POST",
+    headers:{"Content-Type":"application/json","apikey":SUPA_ANON,"Authorization":"Bearer " + SUPA_ANON},
+    body: JSON.stringify(args)
+  });
+  if(!r.ok) throw new Error(fn + ": " + r.status + " " + (await r.text()).slice(0,120));
+  const t = await r.text();
+  return t ? JSON.parse(t) : null;
+}
+
+async function profilSichern(){
+  if(!state.name) return;
+  try{
+    const code = await sbRpc("profil_setzen", {p_geraet: geraet, p_name: state.name});
+    if(code){ state.code = code; speichern(); }
+  }catch(e){}
+}
+
+function codeKopieren(){
+  const c = (state.code || "");
+  if(!c) return;
+  if(navigator.clipboard) navigator.clipboard.writeText(c).then(()=>log("Code kopiert")).catch(()=>{});
+}
+
+function qrZeigen(text){
+  const box = document.getElementById("b_qr");
+  if(!box) return;
+  box.innerHTML = "";
+  const malen = () => {
+    try{ new QRCode(box, {text, width:92, height:92, colorDark:"#0a0a0b", colorLight:"#f4f1ec"}); }
+    catch(e){ box.innerHTML = ""; }
+  };
+  if(window.QRCode) return malen();
+  const sc = document.createElement("script");
+  sc.src = "https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js";
+  sc.onload = malen;
+  sc.onerror = () => { box.innerHTML = ""; };
+  document.head.appendChild(sc);
+}
+
+async function buddyPanel(){
+  menue();
+  document.getElementById("buddy").classList.add("offen");
+  await profilSichern();
+  document.getElementById("b_code").textContent = state.code || "—";
+  if(state.code) qrZeigen("https://hominifex.github.io/pint/?buddy=" + state.code);
+  await ladeBuddy();
+  if(!buddyPoll) buddyPoll = setInterval(() => { if(document.getElementById("buddy").classList.contains("offen")) ladeBuddy(); }, 30000);
+}
+function buddySchliessen(){
+  document.getElementById("buddy").classList.remove("offen");
+  if(buddyPoll){ clearInterval(buddyPoll); buddyPoll = null; }
+}
+
+async function ladeBuddy(){
+  try{
+    const daten = await sbRpc("buddy_liste", {p_ich: geraet}) || [];
+    buddyAnfragen = daten.filter(d => d.kind === "anfrage");
+    buddyListe = daten.filter(d => d.kind === "buddy");
+  }catch(e){ return; }
+  const a = document.getElementById("b_anfragen");
+  const l = document.getElementById("b_liste");
+  a.innerHTML = buddyAnfragen.length
+    ? `<div class="uklein" style="padding:12px 2px 4px">Anfragen</div>` + buddyAnfragen.map(x => `
+        <div class="bzeile">
+          <div class="bname">${esc(x.name)}</div>
+          <button class="bknopf an" onclick="annehmen('${x.geraet}')">Annehmen</button>
+          <button class="bknopf weg" onclick="ablehnen('${x.geraet}')">Nein</button>
+        </div>`).join("")
+    : "";
+  l.innerHTML = buddyListe.length
+    ? `<div class="uklein" style="padding:12px 2px 4px">Deine Buddies</div>` + buddyListe.map(x => {
+        const wann = x.pub ? " 🍺 " + x.pub + (x.stadt ? ", " + x.stadt : "") : " · gerade nichts";
+        const dauer = x.seit ? " · seit " + Math.max(1, Math.round((Date.now() - new Date(x.seit)) / 60000)) + " Min" : "";
+        return `<div class="bzeile">
+          <div class="bname">${esc(x.name)}<span class="bstat">${x.pub ? "trinkt" + esc(wann) + dauer : "still"}</span></div>
+          <button class="bknopf weg" onclick="entfernen('${x.geraet}')">Entfernen</button>
+        </div>`;
+      }).join("")
+    : `<div class="uklein" style="padding:14px 2px">Noch keine Buddies. Teile deinen Code.</div>`;
+  const zahl = document.getElementById("b_zahl");
+  if(zahl) zahl.textContent = buddyListe.filter(x => x.pub).length ? " · " + buddyListe.filter(x => x.pub).length + " trinkt" : "";
+}
+
+async function anfrageSenden(){
+  const feld = document.getElementById("b_neu");
+  const code = (feld.value || "").trim().toUpperCase();
+  if(code.length < 4){ alert("Bitte den Code des Freundes eingeben."); return; }
+  try{
+    const erg = await sbRpc("buddy_anfrage", {p_ich: geraet, p_code: code, p_name: state.name || "Pint-Freund"});
+    feld.value = "";
+    const texte = {gesendet:"Anfrage verschickt.", unbekannt:"Diesen Code gibt es nicht.", selbst:"Das ist dein eigener Code.", schon:"Ihr seid schon verbunden."};
+    log(texte[erg] || "Anfrage verarbeitet.");
+    if(erg !== "gesendet") alert(texte[erg] || erg);
+    ladeBuddy();
+  }catch(e){ alert("Hat nicht geklappt: " + e.message); }
+}
+async function annehmen(g){ try{ await sbRpc("buddy_annehmen", {p_ich: geraet, p_von: g}); ladeBuddy(); }catch(e){} }
+async function ablehnen(g){ try{ await sbRpc("buddy_entfernen", {p_ich: geraet, p_wer: g}); ladeBuddy(); }catch(e){} }
+async function entfernen(g){ try{ await sbRpc("buddy_entfernen", {p_ich: geraet, p_wer: g}); ladeBuddy(); }catch(e){} }
+
+async function trinkeUmschalten(){
+  if(!aktuell) return;
+  const k = "pint_praesenz";
+  const drin = localStorage.getItem(k);
+  if(drin){
+    localStorage.removeItem(k);
+    try{ await sbRpc("praesenz_beenden", {p_ich: geraet}); }catch(e){}
+    log("Standort-Freigabe beendet");
+  } else {
+    try{
+      await sbRpc("praesenz_setzen", {p_ich: geraet, p_pub: aktuell.name, p_stadt: aktuell.stadt});
+      localStorage.setItem(k, JSON.stringify({pub: aktuell.name, seit: Date.now()}));
+      log("Buddies sehen: trinkt im " + esc(aktuell.name));
+    }catch(e){ alert("Konnte nicht gesendet werden."); }
+  }
+  praesenzKnopf();
+}
+function praesenzKnopf(){
+  const b = document.getElementById("d_praesenz");
+  if(!b) return;
+  const drin = !!localStorage.getItem("pint_praesenz");
+  b.textContent = drin ? "🍻 Du teilst gerade — beenden" : "🍻 Ich trinke hier";
+  b.style.borderColor = drin ? "#3a5a3a" : "";
+  b.style.color = drin ? "#8fd08f" : "";
+}
 // Seiten-Zoom per Zwei-Finger-Geste unterbinden — die Karte zoomt selbst
 ["gesturestart","gesturechange","gestureend"].forEach(ev =>
   document.addEventListener(ev, e => { if(!e.target.closest("#karte")) e.preventDefault(); }, {passive:false}));
 document.addEventListener("dblclick", e => { if(!e.target.closest("#karte")) e.preventDefault(); }, {passive:false});
 
-window.addEventListener("load",()=>{ initKarte(); rendern(); zaehlePints(); profilMalen(); startZeigen(); ladeMeldungen();
+window.addEventListener("load",()=>{ initKarte(); rendern(); zaehlePints(); profilMalen(); startZeigen(); ladeMeldungen(); profilSichern();
+  const p = new URLSearchParams(location.search).get("buddy");
+  if(p){ setTimeout(() => { buddyPanel().then(() => { const f = document.getElementById("b_neu"); if(f){ f.value = p.toUpperCase(); f.focus(); } }); }, 900); }
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').then(reg => reg.update()).catch(()=>{});
     document.addEventListener('visibilitychange', () => {
