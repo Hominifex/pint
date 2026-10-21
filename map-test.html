@@ -157,6 +157,11 @@
   .tinfo{flex:1;min-width:0}
   .tinfo b{display:block;font-size:13.5px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tinfo span{font-size:11.5px;color:var(--muted)}
+  .tknopf{width:26px;height:26px;flex:none;border-radius:8px;border:1px solid var(--line);
+    background:var(--sheet2);color:var(--ink);font-size:13px;line-height:1;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;font-family:inherit}
+  .tknopf:disabled{opacity:.3}
+  .tknopf.weg{color:#d88;border-color:#3a2a2a}
   .tkm{font-size:12px;color:var(--gold);white-space:nowrap}
   .mklein{background:none;border:0;color:var(--muted);font-size:11.5px;padding:0;margin:2px 10px 0 0;
     cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:2px}
@@ -567,17 +572,19 @@
   <div class="ukarte">
     <div class="ukopf">
       <div>
-        <h3>Deine Pint-Tour</h3>
-        <div class="uunter" id="t_unter">Drei Pubs, nach Entfernung sortiert</div>
+        <h3>Meine Pint-Route</h3>
+        <div class="uunter" id="t_unter">Pubs selbst zusammenstellen, in deiner Reihenfolge</div>
       </div>
       <button class="x" onclick="tourSchliessen()">×</button>
     </div>
     <div class="uliste" id="t_liste" style="padding:2px 0"></div>
-    <div class="utext" style="padding:10px 2px 0"><p class="uklein" id="t_summe"></p></div>
-    <button class="mzeile" onclick="tourStarten()">🧭 Route starten — Pub 1 zuerst <span>›</span></button>
-    <div class="uklein" style="padding:10px 4px 0">Die Reihenfolge folgt der Luftlinie von deinem
-    Standort. Zwischen den Pubs führt dich die Route zu Fuß oder mit dem Rad — je nachdem, was du
-    in der Karte wählst.</div>
+    <div class="uklein" id="t_leer" style="padding:16px 4px;text-align:center">Noch keine Pubs in der
+    Route. Tippe unten auf „Pub hinzufügen".</div>
+    <button class="mzeile" onclick="routePicker()" id="t_hinzu">➕ Pub hinzufügen <span>›</span></button>
+    <div id="t_picker" style="display:none;max-height:36vh;overflow:auto;margin-top:4px"></div>
+    <button class="mzeile" onclick="routeStarten()" id="t_start">🧭 Route starten <span>›</span></button>
+    <div class="uklein" style="padding:10px 4px 0">Die Route folgt deiner Reihenfolge. Start ist dein
+    Standort (oder die Kartenmitte). In der Karte kannst du zwischen Fußweg, Rad und Auto wechseln.</div>
   </div>
 </div>
 
@@ -1121,44 +1128,118 @@ function menueText(){
     (j.schnitt ? ` · Ø ${j.schnitt.toFixed(2)} €` : "") +
     (j.straehne > 1 ? ` · ${j.straehne} Tage in Folge` : "");
 }
-let tourZiele = [];
 function luft(l, p){
   return Math.hypot((l.lat - p[0]) * 111, (l.lon - p[1]) * 70);
 }
+function routePubs(){
+  const alle_ = alle();
+  return (state.route || []).map(k => {
+    const [name, stadt] = k.split("|");
+    return alle_.find(l => l.name === name && l.stadt === stadt);
+  }).filter(Boolean);
+}
 function pintTour(){
-  const mitStandort = !!userPos;
-  const start = userPos || [karte.getCenter().lat, karte.getCenter().lng];
-  const kandidaten = alle().filter(l => l.lat)
-    .map(l => ({l, d: luft(l, start)}))
-    .sort((a,b) => a.d - b.d).slice(0,3);
-  if(kandidaten.length < 2){ alert("Zu wenige Pubs mit Position in der Nähe."); return; }
-  tourZiele = kandidaten;
-
-  document.getElementById("t_unter").textContent = mitStandort
-    ? "Drei Pubs, die nächsten zu deinem Standort"
-    : "Drei Pubs, die nächsten zur Kartenmitte — Standort nicht freigegeben";
-
-  document.getElementById("t_liste").innerHTML = kandidaten.map((k, i) => `
-    <div class="tzeile">
-      <div class="tnum">${i+1}</div>
-      <div class="tinfo"><b>${esc(k.l.name)}</b><span>${esc(k.l.stadt)}${k.l.preis ? " · " + k.l.preis.toFixed(2) + " €" : ""}</span></div>
-      <div class="tkm">${k.d.toFixed(1)} km</div>
-    </div>`).join("");
-
-  document.getElementById("t_summe").textContent =
-    `Start ${mitStandort ? "dein Standort" : "Kartenmitte"} · ${kandidaten.length} Pubs · letzter Pub ${kandidaten[kandidaten.length-1].d.toFixed(1)} km entfernt (Luftlinie)`;
-
+  routePickerSchliessen();
+  routeZeichnen();
   menue();
   document.getElementById("tour").classList.add("offen");
-  log("Pint-Tour · " + kandidaten.map(k => k.l.name).join(" → "));
 }
 function tourSchliessen(){ document.getElementById("tour").classList.remove("offen"); }
-function tourStarten(){
-  if(!tourZiele.length) return;
+
+function routeZeichnen(){
+  const pubs = routePubs();
+  const leer = document.getElementById("t_leer");
+  const liste = document.getElementById("t_liste");
+  if(!pubs.length){
+    liste.innerHTML = "";
+    if(leer) leer.style.display = "block";
+    document.getElementById("t_start").style.display = "none";
+    return;
+  }
+  if(leer) leer.style.display = "none";
+  document.getElementById("t_start").style.display = "flex";
   const start = userPos || [karte.getCenter().lat, karte.getCenter().lng];
-  const punkte = [start].concat(tourZiele.map(k => [k.l.lat, k.l.lon]));
+  let vor = start;
+  liste.innerHTML = pubs.map((l, i) => {
+    const d = luft(l, vor);
+    vor = [l.lat, l.lon];
+    return `<div class="tzeile">
+      <div class="tnum">${i+1}</div>
+      <div class="tinfo"><b>${esc(l.name)}</b><span>${esc(l.stadt)}${i > 0 ? " · " + d.toFixed(1) + " km vom vorigen" : " · " + d.toFixed(1) + " km ab Start"}</span></div>
+      <button class="tknopf" onclick="routeHoch(${i})" title="nach oben" ${i === 0 ? "disabled" : ""}>↑</button>
+      <button class="tknopf" onclick="routeRunter(${i})" title="nach unten" ${i === pubs.length-1 ? "disabled" : ""}>↓</button>
+      <button class="tknopf weg" onclick="routeEntfernen(${i})" title="entfernen">×</button>
+    </div>`;
+  }).join("");
+  let summe = 0, prev = start;
+  pubs.forEach(l => { summe += luft(l, prev); prev = [l.lat, l.lon]; });
+  document.getElementById("t_start").innerHTML = `🧭 Route starten — ${pubs.length} ${pubs.length === 1 ? "Pub" : "Pubs"}, ca. ${summe.toFixed(1)} km <span>›</span>`;
+}
+
+function routePicker(){
+  const box = document.getElementById("t_picker");
+  if(box.style.display === "block"){ box.style.display = "none"; return; }
+  window._pickerOffen = true;
+  routePickerZeichnen();
+}
+function routePickerZeichnen(){
+  const box = document.getElementById("t_picker");
+  if(!box) return;
+  const start = userPos || [karte.getCenter().lat, karte.getCenter().lng];
+  const gewaehlt = new Set(state.route || []);
+  window._picker = alle().filter(l => l.lat)
+    .map(l => ({l, d: luft(l, start)}))
+    .sort((a,b) => a.d - b.d).slice(0, 40)
+    .map(o => o.l);
+  const abstand = {};
+  alle().filter(l => l.lat).forEach(l => { abstand[l.name + "|" + l.stadt] = luft(l, start); });
+
+  box.innerHTML = window._picker.map((l, i) => {
+    const k = l.name + "|" + l.stadt;
+    const drin = gewaehlt.has(k);
+    return `<div class="tzeile" onclick="routeTippen(${i})" style="cursor:pointer">
+      <div class="tinfo"><b>${esc(l.name)}</b><span>${esc(l.stadt)} · ${(abstand[k] || 0).toFixed(1)} km${l.preis ? " · " + l.preis.toFixed(2) + " €" : ""}</span></div>
+      <div class="tkm" style="font-size:15px">${drin ? "✓" : "＋"}</div>
+    </div>`;
+  }).join("") || '<div class="uklein" style="padding:14px">Keine Pubs mit Position gefunden.</div>';
+  box.style.display = "block";
+}
+function routePickerSchliessen(){
+  const b = document.getElementById("t_picker");
+  if(b) b.style.display = "none";
+}
+function routeTippen(i){
+  const l = (window._picker || [])[i];
+  if(!l) return;
+  if(!state.route) state.route = [];
+  const k = l.name + "|" + l.stadt;
+  const pos = state.route.indexOf(k);
+  if(pos >= 0) state.route.splice(pos, 1); else state.route.push(k);
+  speichern(); routeZeichnen(); routePickerZeichnen();
+}
+function routeEntfernen(i){
+  if(!state.route) return;
+  state.route.splice(i, 1);
+  speichern(); routeZeichnen();
+}
+function routeHoch(i){
+  if(!state.route || i <= 0) return;
+  [state.route[i-1], state.route[i]] = [state.route[i], state.route[i-1]];
+  speichern(); routeZeichnen();
+}
+function routeRunter(i){
+  if(!state.route || i >= state.route.length - 1) return;
+  [state.route[i+1], state.route[i]] = [state.route[i], state.route[i+1]];
+  speichern(); routeZeichnen();
+}
+function routeStarten(){
+  const pubs = routePubs();
+  if(!pubs.length){ alert("Füge zuerst Pubs hinzu."); return; }
+  const start = userPos || [karte.getCenter().lat, karte.getCenter().lng];
+  const punkte = [start].concat(pubs.map(l => [l.lat, l.lon]));
   const weg = punkte.map(p => `${p[0]}%2C${p[1]}`).join("%3B");
   window.open(`https://www.openstreetmap.org/directions?engine=fossgis_osrm_foot&route=${weg}`, "_blank");
+  log("Pint-Route · " + pubs.map(l => l.name).join(" → "));
 }
 function nurBesuchte(){
   const besucht = new Set(state.pints.map(p => p.name + "|" + p.stadt));
