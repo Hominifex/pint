@@ -25,7 +25,7 @@
   "lon": 11.0804456,
   "preis": null,
   "bestaetigt": null,
-  "web": "https://mulligansirishpub.de/",
+  "web": "",
   "menu": "",
   "preis_quelle": ""
  },
@@ -130,8 +130,8 @@
   "lon": 11.0154366,
   "preis": null,
   "bestaetigt": null,
-  "web": "https://murphys-pub.de/",
-  "menu": "https://murphys-pub.de/menue/",
+  "web": "",
+  "menu": "",
   "preis_quelle": ""
  },
  {
@@ -190,8 +190,8 @@
   "lon": 10.9881768,
   "preis": null,
   "bestaetigt": null,
-  "web": "https://irish-cottage-pub.de/",
-  "menu": "https://irish-cottage-pub.de/Speisekarte",
+  "web": "https://www.irishcottagepub.com/",
+  "menu": "",
   "preis_quelle": ""
  },
  {
@@ -205,7 +205,7 @@
   "lon": 10.8868478,
   "preis": null,
   "bestaetigt": null,
-  "web": "https://kiliansirishpub.de/",
+  "web": "",
   "menu": "",
   "preis_quelle": ""
  },
@@ -220,8 +220,8 @@
   "lon": 11.060863,
   "preis": null,
   "bestaetigt": null,
-  "web": "https://altewache.info/",
-  "menu": "https://altewache.info/Speisekarte",
+  "web": "https://www.facebook.com/derGringobeiderAltenWache/",
+  "menu": "",
   "preis_quelle": ""
  },
  {
