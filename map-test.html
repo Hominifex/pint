@@ -1,0 +1,1153 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0b">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Where is my Pint? — Kartentest</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<style>
+  :root{
+    --bg:#0a0a0b; --sheet:#121214; --sheet2:#18181b; --ink:#f4f1ec; --muted:#8d877e;
+    --line:#26262b; --gold:#d8ae57; --green:#3fa96a; --red:#c0605a;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{height:100%;margin:0;overscroll-behavior:none}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  #karte{position:fixed; inset:0; background:#0f0f11}
+  .maplibregl-ctrl-attrib{background:rgba(10,10,11,.75)!important; color:#6f6a63!important; font-size:9px!important}
+  .maplibregl-ctrl-attrib a{color:#8d877e!important}
+  .maplibregl-ctrl-group{background:#121214!important; border:1px solid #26262b!important}
+  .maplibregl-ctrl-icon{filter:invert(1)}
+  #ladehinweis{position:fixed;left:50%;top:46%;transform:translateX(-50%);z-index:700;
+    font-size:12.5px;color:#8d877e;background:rgba(10,10,11,.85);padding:9px 14px;border-radius:99px}
+
+  /* Kopf: Logo + Suche schwebend */
+  #kopf{
+    position:fixed; top:0; left:0; right:0; z-index:900;
+    padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
+    display:flex; align-items:center; gap:10px; pointer-events:none;
+  }
+  #kopf > *{pointer-events:auto}
+  .mark{
+    width:42px;height:42px;flex:none;border-radius:12px;overflow:hidden;padding:0;cursor:pointer;
+    background:#000; border:1px solid var(--line); display:grid; place-items:center;
+  }
+  .mark img{width:100%;height:100%;object-fit:cover}
+  .suchfeld{
+    flex:1; display:flex; align-items:center; gap:8px;
+    background:rgba(18,18,20,.92); backdrop-filter:blur(14px);
+    border:1px solid var(--line); border-radius:14px; padding:11px 14px;
+  }
+  .suchfeld input{
+    flex:1; background:transparent; border:0; outline:none; color:var(--ink); font-size:15px;
+  }
+  .suchfeld input::placeholder{color:#6f6a63}
+  .iconbtn{
+    width:42px;height:42px;flex:none;border-radius:12px;border:1px solid var(--line);
+    background:rgba(18,18,20,.92); color:var(--ink); display:grid; place-items:center;
+    font-size:17px; cursor:pointer; backdrop-filter:blur(14px);
+  }
+
+  .standortkreis{stroke:#d8ae57;stroke-width:1.5;fill:#d8ae57;fill-opacity:.06}
+
+  /* Bottom Sheet */
+  #sheet{
+    position:fixed; left:0; right:0; bottom:0; z-index:950;
+    background:var(--sheet); border-top:1px solid var(--line);
+    border-radius:22px 22px 0 0; box-shadow:0 -18px 50px rgba(0,0,0,.55);
+    max-height:72vh; display:flex; flex-direction:column;
+    transition:transform .28s cubic-bezier(.32,.72,0,1);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  #sheet.zu{transform:translateY(calc(100% - 92px))}
+  .pintzaehler{
+    margin-left:auto; font-size:12.5px; color:var(--gold); background:#221d12;
+    border:1px solid #3a3021; border-radius:99px; padding:5px 11px; cursor:pointer; white-space:nowrap;
+  }
+  .pintzaehler b{font-weight:700}
+  #bewertung{
+    position:fixed; inset:0; z-index:1170; display:none; background:rgba(6,6,7,.78);
+    backdrop-filter:blur(6px); padding:18px; align-items:center; justify-content:center;
+  }
+  #bewertung.offen{display:flex}
+  #bewertung .bkarte{
+    width:100%; max-width:380px; background:var(--sheet); border:1px solid var(--line);
+    border-radius:20px; padding:20px;
+  }
+  #bewertung h3{margin:0 0 4px;font-size:18px;letter-spacing:-.02em}
+  .bunter{font-size:12.5px;color:var(--muted);margin-bottom:16px}
+  .bzeile{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .bzeile label{font-size:13px;color:var(--muted)}
+  .sterne{display:flex;gap:6px}
+  .stern{width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--sheet2);
+         cursor:pointer;display:grid;place-items:center;font-size:13px;color:#5b564e}
+  .stern.an{background:var(--gold);color:#1a1408;border-color:var(--gold)}
+  .baktionen{display:flex;gap:10px;margin-top:16px}
+  .baktionen .btn{flex:1;padding:13px}
+  #angebote{
+    position:fixed; inset:0; z-index:1166; display:none; background:rgba(6,6,7,.78);
+    backdrop-filter:blur(6px); padding:16px; overflow:auto;
+  }
+  #angebote.offen{display:block}
+  #angebote .ukarte{max-width:430px;margin:5vh auto 0;background:var(--sheet);
+    border:1px solid var(--line);border-radius:20px;padding:18px}
+  .angebot{display:flex;gap:12px;align-items:center;padding:11px 4px;border-bottom:1px solid #1d1d21}
+  .angebot:last-child{border-bottom:0}
+  .angebot .info{flex:1;min-width:0}
+  .angebot .mk{font-size:12px;color:var(--gold);font-weight:650}
+  .angebot .pr{font-size:12.5px;color:var(--ink);margin-top:2px}
+  .angebot .gueltig{font-size:11px;color:var(--muted);margin-top:3px}
+  .angebot .betrag{text-align:right}
+  .angebot .betrag b{display:block;font-size:17px;color:var(--gold);white-space:nowrap}
+  .angebot .betrag s{font-size:11px;color:var(--muted)}
+  .angebot a{color:inherit;text-decoration:none}
+  .uklein{font-size:11px;color:var(--muted);line-height:1.5}
+  #ueber{
+    position:fixed; inset:0; z-index:1165; display:none; background:rgba(6,6,7,.78);
+    backdrop-filter:blur(6px); padding:16px; overflow:auto;
+  }
+  #ueber.offen{display:block}
+  #ueber .ukarte{max-width:430px;margin:5vh auto 0;background:var(--sheet);
+    border:1px solid var(--line);border-radius:20px;padding:20px}
+  #ueber .utext p{margin:0 0 12px;font-size:13px;line-height:1.6;color:var(--ink)}
+  #ueber .utext b{color:var(--gold);font-weight:650}
+  #ueber .uklein{font-size:11px;color:var(--muted)}
+  #umgebung{
+    position:fixed; inset:0; z-index:1160; display:none; background:rgba(6,6,7,.72);
+    backdrop-filter:blur(6px); padding:16px; overflow:auto;
+  }
+  #umgebung.offen{display:block}
+  #umgebung .ukarte{
+    max-width:430px; margin:5vh auto 0; background:var(--sheet); border:1px solid var(--line);
+    border-radius:20px; padding:18px;
+  }
+  .ukopf{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .ukopf h3{margin:0;font-size:17px;letter-spacing:-.02em}
+  .uunter{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .ukopf .x{background:none;border:0;color:var(--muted);font-size:24px;line-height:1;cursor:pointer}
+  .uliste{max-height:56vh;overflow:auto;margin-bottom:6px}
+  .uliste .row{border-radius:12px}
+  #menu{
+    position:fixed; inset:0; z-index:1150; display:none; background:rgba(6,6,7,.72);
+    backdrop-filter:blur(6px); padding:18px; overflow:auto;
+  }
+  #menu.offen{display:block}
+  #menu .mkarte{
+    max-width:420px; margin:7vh auto 0; background:var(--sheet); border:1px solid var(--line);
+    border-radius:20px; padding:20px;
+  }
+  .mkopf{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .mkopf h3{margin:0;font-size:19px;letter-spacing:-.02em}
+  .mkopf .x{background:none;border:0;color:var(--muted);font-size:24px;line-height:1;cursor:pointer}
+  .mzahlen{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+  .mzahlen div{background:var(--sheet2);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+  .mzahlen b{display:block;font-size:24px;letter-spacing:-.02em;line-height:1.1}
+  .mzahlen span{font-size:11px;color:var(--muted)}
+  .mzeile{
+    width:100%; display:flex; align-items:center; gap:10px; justify-content:space-between;
+    background:var(--sheet2); border:1px solid var(--line); border-radius:13px; color:var(--ink);
+    font-size:13.5px; padding:13px 14px; margin-top:8px; cursor:pointer; font-family:inherit; text-align:left;
+  }
+  .mzeile span{color:var(--muted)}
+  .mjahr{background:linear-gradient(160deg,#1d1810,#141416);border:1px solid #33291a;
+    border-radius:16px;padding:14px;margin-bottom:10px}
+  .mjahr-kopf{font-size:12px;color:var(--gold);display:flex;justify-content:space-between;margin-bottom:6px}
+  .mjahr-text{font-size:12.5px;color:var(--ink);line-height:1.55}
+  .mliste{max-height:180px;overflow:auto;margin-top:8px}
+  .mliste .pz{font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between;
+    padding:9px 4px;border-bottom:1px solid #1d1d21}
+  .mliste .pz b{color:var(--ink);font-weight:600}
+  #stats{
+    position:fixed; inset:0; z-index:1100; display:none; background:rgba(6,6,7,.72);
+    backdrop-filter:blur(6px); padding:20px; overflow:auto;
+  }
+  #stats.offen{display:block}
+  #stats .karte{
+    max-width:420px; margin:6vh auto; background:var(--sheet); border:1px solid var(--line);
+    border-radius:20px; padding:22px;
+  }
+  #stats h3{margin:0 0 16px; font-size:18px; letter-spacing:-.02em}
+  #stats .zahlen{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px}
+  #stats .zahlbox{background:var(--sheet2); border:1px solid var(--line); border-radius:14px; padding:14px}
+  #stats .zahlbox b{display:block; font-size:26px; letter-spacing:-.02em; line-height:1.1}
+  #stats .zahlbox span{font-size:11.5px; color:var(--muted)}
+  #stats .abzeichen{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px}
+  #stats .abz{font-size:11.5px; border:1px solid #3a3021; background:#221d12; color:var(--gold);
+    border-radius:99px; padding:6px 11px}
+  #stats .abz.aus{opacity:.35; filter:grayscale(1)}
+  #stats .schliessen{width:100%; margin-top:4px}
+  .griff{width:38px;height:4px;border-radius:99px;background:#3a3a40;margin:9px auto 4px}
+  .sheetkopf{padding:0 18px 10px; display:flex; align-items:baseline; gap:10px; cursor:pointer}
+  .sheetkopf h2{font-size:16px;margin:0;letter-spacing:-.01em}
+  .sheetkopf .zahl{font-size:13px;color:var(--muted)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 18px 12px}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{
+    flex:1 1 0; min-width:calc(50% - 4px); display:inline-flex; align-items:center;
+    justify-content:center; height:34px; line-height:1; font-size:12.5px; padding:0 12px;
+    border-radius:11px; cursor:pointer; border:1px solid var(--line); background:var(--sheet2);
+    color:var(--muted); transition:.15s; white-space:nowrap;
+  }
+  #radiuszeile .chip{min-width:calc(33.33% - 6px)}
+  .chip.an{background:var(--gold); color:#1a1408; border-color:var(--gold); font-weight:650}
+
+  .liste{overflow-y:auto; padding:0 12px 16px; -webkit-overflow-scrolling:touch}
+  .row{
+    display:flex; align-items:center; gap:14px; padding:14px 12px; border-radius:14px;
+    cursor:pointer; transition:background .15s;
+  }
+  .row:active{background:var(--sheet2)}
+  .row + .row{border-top:1px solid #1d1d21}
+  .row .info{min-width:0; flex:1}
+  .row .nm{font-size:15px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .ort{font-size:12.5px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .preis{font-size:16px;font-weight:700;color:var(--gold);white-space:nowrap}
+  .row .preis small{font-size:11px;color:var(--muted);font-weight:500;display:block;text-align:right}
+  .preisfrage{font-size:11.5px;color:var(--muted);border:1px dashed #3a3a40;border-radius:99px;padding:5px 10px}
+  .dot{width:8px;height:8px;border-radius:50%;flex:none}
+
+  /* Detailkarte */
+  #detail{
+    position:fixed; inset:auto 0 0 0; z-index:1000; display:none;
+    background:var(--sheet); border-radius:22px 22px 0 0; border-top:1px solid var(--line);
+    padding:14px 18px calc(20px + env(safe-area-inset-bottom));
+    box-shadow:0 -20px 60px rgba(0,0,0,.6);
+  }
+  #detail.offen{display:block}
+  #detail .kopf{display:flex;align-items:flex-start;gap:12px;margin-bottom:4px}
+  #detail h3{margin:0;font-size:19px;letter-spacing:-.02em;flex:1}
+  #detail .x{background:none;border:0;color:var(--muted);font-size:22px;line-height:1;cursor:pointer;padding:0}
+  #detail .dstatus{font-size:11.5px;color:var(--muted);margin-top:3px}
+  #detail .dstatus i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px}
+  #detail .links{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+  #detail .links a{
+    display:inline-flex;align-items:center;gap:6px;font-size:12.5px;text-decoration:none;
+    color:var(--ink);background:var(--sheet2);border:1px solid var(--line);
+    border-radius:99px;padding:8px 13px;
+  }
+  #detail .links a:active{background:#242428}
+  #detail .special{
+    display:flex; gap:11px; align-items:flex-start; background:linear-gradient(135deg,#241d10,#1a1712);
+    border:1px solid #4a3a1e; border-radius:13px; padding:12px 13px; margin-bottom:12px;
+  }
+  #detail .special .ico{font-size:18px;line-height:1.1}
+  #detail .special .txt{font-size:12.5px;line-height:1.5;color:var(--ink)}
+  #detail .special .txt b{color:var(--gold);font-weight:650;display:block;margin-bottom:2px;font-size:12px;letter-spacing:.02em;text-transform:uppercase}
+  #detail .special .txt small{color:var(--muted);font-size:11px}
+  #detail .specialknopf{
+    width:100%; text-align:left; background:var(--sheet2); border:1px dashed #3a3a40; color:var(--muted);
+    border-radius:12px; padding:11px 13px; font-size:12.5px; cursor:pointer; margin-bottom:12px; font-family:inherit;
+  }
+  #detail .dzeile{display:flex;justify-content:space-between;font-size:12.5px;
+    color:var(--muted);padding:7px 0;border-top:1px solid #1d1d21}
+  #detail .dzeile b{color:var(--ink);font-weight:600}
+  #detail .adr{color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:14px}
+  #detail .preiszeile{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  #detail .preiszeile b{font-size:30px;letter-spacing:-.02em;color:var(--gold);white-space:nowrap}
+  #detail .preiszeile span{font-size:12px;color:var(--muted)}
+  #detail .preiszeile b.kein{font-size:20px;color:var(--muted);font-weight:600}
+  .aktionen{display:flex;gap:10px}
+  .btn{
+    flex:1; border:0; border-radius:14px; padding:15px 12px; font-size:14.5px; font-weight:650;
+    cursor:pointer; font-family:inherit;
+  }
+  .btn.prim{background:var(--green); color:#06170d}
+  .btn.sec{background:var(--sheet2); color:var(--ink); border:1px solid var(--line)}
+  .btn:active{transform:scale(.985)}
+  .hinweis{font-size:11.5px;color:var(--muted);padding:0 6px 4px;line-height:1.5}
+
+  /* Desktop */
+  @media (min-width:820px){
+    #kopf{max-width:520px}
+    #sheet{
+      left:24px; right:auto; bottom:24px; width:400px; max-height:calc(100vh - 140px);
+      border-radius:20px; border:1px solid var(--line); transform:none!important;
+    }
+    #detail{left:24px; right:auto; bottom:24px; width:400px; border-radius:20px;
+            border:1px solid var(--line)}
+    .pintzaehler{
+    margin-left:auto; font-size:12.5px; color:var(--gold); background:#221d12;
+    border:1px solid #3a3021; border-radius:99px; padding:5px 11px; cursor:pointer; white-space:nowrap;
+  }
+  .pintzaehler b{font-weight:700}
+  #bewertung{
+    position:fixed; inset:0; z-index:1170; display:none; background:rgba(6,6,7,.78);
+    backdrop-filter:blur(6px); padding:18px; align-items:center; justify-content:center;
+  }
+  #bewertung.offen{display:flex}
+  #bewertung .bkarte{
+    width:100%; max-width:380px; background:var(--sheet); border:1px solid var(--line);
+    border-radius:20px; padding:20px;
+  }
+  #bewertung h3{margin:0 0 4px;font-size:18px;letter-spacing:-.02em}
+  .bunter{font-size:12.5px;color:var(--muted);margin-bottom:16px}
+  .bzeile{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .bzeile label{font-size:13px;color:var(--muted)}
+  .sterne{display:flex;gap:6px}
+  .stern{width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--sheet2);
+         cursor:pointer;display:grid;place-items:center;font-size:13px;color:#5b564e}
+  .stern.an{background:var(--gold);color:#1a1408;border-color:var(--gold)}
+  .baktionen{display:flex;gap:10px;margin-top:16px}
+  .baktionen .btn{flex:1;padding:13px}
+  #angebote{
+    position:fixed; inset:0; z-index:1166; display:none; background:rgba(6,6,7,.78);
+    backdrop-filter:blur(6px); padding:16px; overflow:auto;
+  }
+  #angebote.offen{display:block}
+  #angebote .ukarte{max-width:430px;margin:5vh auto 0;background:var(--sheet);
+    border:1px solid var(--line);border-radius:20px;padding:18px}
+  .angebot{display:flex;gap:12px;align-items:center;padding:11px 4px;border-bottom:1px solid #1d1d21}
+  .angebot:last-child{border-bottom:0}
+  .angebot .info{flex:1;min-width:0}
+  .angebot .mk{font-size:12px;color:var(--gold);font-weight:650}
+  .angebot .pr{font-size:12.5px;color:var(--ink);margin-top:2px}
+  .angebot .gueltig{font-size:11px;color:var(--muted);margin-top:3px}
+  .angebot .betrag{text-align:right}
+  .angebot .betrag b{display:block;font-size:17px;color:var(--gold);white-space:nowrap}
+  .angebot .betrag s{font-size:11px;color:var(--muted)}
+  .angebot a{color:inherit;text-decoration:none}
+  .uklein{font-size:11px;color:var(--muted);line-height:1.5}
+  #ueber{
+    position:fixed; inset:0; z-index:1165; display:none; background:rgba(6,6,7,.78);
+    backdrop-filter:blur(6px); padding:16px; overflow:auto;
+  }
+  #ueber.offen{display:block}
+  #ueber .ukarte{max-width:430px;margin:5vh auto 0;background:var(--sheet);
+    border:1px solid var(--line);border-radius:20px;padding:20px}
+  #ueber .utext p{margin:0 0 12px;font-size:13px;line-height:1.6;color:var(--ink)}
+  #ueber .utext b{color:var(--gold);font-weight:650}
+  #ueber .uklein{font-size:11px;color:var(--muted)}
+  #umgebung{
+    position:fixed; inset:0; z-index:1160; display:none; background:rgba(6,6,7,.72);
+    backdrop-filter:blur(6px); padding:16px; overflow:auto;
+  }
+  #umgebung.offen{display:block}
+  #umgebung .ukarte{
+    max-width:430px; margin:5vh auto 0; background:var(--sheet); border:1px solid var(--line);
+    border-radius:20px; padding:18px;
+  }
+  .ukopf{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .ukopf h3{margin:0;font-size:17px;letter-spacing:-.02em}
+  .uunter{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .ukopf .x{background:none;border:0;color:var(--muted);font-size:24px;line-height:1;cursor:pointer}
+  .uliste{max-height:56vh;overflow:auto;margin-bottom:6px}
+  .uliste .row{border-radius:12px}
+  #menu{
+    position:fixed; inset:0; z-index:1150; display:none; background:rgba(6,6,7,.72);
+    backdrop-filter:blur(6px); padding:18px; overflow:auto;
+  }
+  #menu.offen{display:block}
+  #menu .mkarte{
+    max-width:420px; margin:7vh auto 0; background:var(--sheet); border:1px solid var(--line);
+    border-radius:20px; padding:20px;
+  }
+  .mkopf{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .mkopf h3{margin:0;font-size:19px;letter-spacing:-.02em}
+  .mkopf .x{background:none;border:0;color:var(--muted);font-size:24px;line-height:1;cursor:pointer}
+  .mzahlen{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+  .mzahlen div{background:var(--sheet2);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+  .mzahlen b{display:block;font-size:24px;letter-spacing:-.02em;line-height:1.1}
+  .mzahlen span{font-size:11px;color:var(--muted)}
+  .mzeile{
+    width:100%; display:flex; align-items:center; gap:10px; justify-content:space-between;
+    background:var(--sheet2); border:1px solid var(--line); border-radius:13px; color:var(--ink);
+    font-size:13.5px; padding:13px 14px; margin-top:8px; cursor:pointer; font-family:inherit; text-align:left;
+  }
+  .mzeile span{color:var(--muted)}
+  .mjahr{background:linear-gradient(160deg,#1d1810,#141416);border:1px solid #33291a;
+    border-radius:16px;padding:14px;margin-bottom:10px}
+  .mjahr-kopf{font-size:12px;color:var(--gold);display:flex;justify-content:space-between;margin-bottom:6px}
+  .mjahr-text{font-size:12.5px;color:var(--ink);line-height:1.55}
+  .mliste{max-height:180px;overflow:auto;margin-top:8px}
+  .mliste .pz{font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between;
+    padding:9px 4px;border-bottom:1px solid #1d1d21}
+  .mliste .pz b{color:var(--ink);font-weight:600}
+  #stats{
+    position:fixed; inset:0; z-index:1100; display:none; background:rgba(6,6,7,.72);
+    backdrop-filter:blur(6px); padding:20px; overflow:auto;
+  }
+  #stats.offen{display:block}
+  #stats .karte{
+    max-width:420px; margin:6vh auto; background:var(--sheet); border:1px solid var(--line);
+    border-radius:20px; padding:22px;
+  }
+  #stats h3{margin:0 0 16px; font-size:18px; letter-spacing:-.02em}
+  #stats .zahlen{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px}
+  #stats .zahlbox{background:var(--sheet2); border:1px solid var(--line); border-radius:14px; padding:14px}
+  #stats .zahlbox b{display:block; font-size:26px; letter-spacing:-.02em; line-height:1.1}
+  #stats .zahlbox span{font-size:11.5px; color:var(--muted)}
+  #stats .abzeichen{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px}
+  #stats .abz{font-size:11.5px; border:1px solid #3a3021; background:#221d12; color:var(--gold);
+    border-radius:99px; padding:6px 11px}
+  #stats .abz.aus{opacity:.35; filter:grayscale(1)}
+  #stats .schliessen{width:100%; margin-top:4px}
+  .griff{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div id="karte"></div>
+<div id="ladehinweis">Karte lädt …</div>
+
+<div id="kopf">
+  <button class="mark" onclick="menue()" aria-label="Menü"><img src="logo-quadrat.png" alt=""></button>
+  <div class="suchfeld">
+    <span style="color:#6f6a63">⌕</span>
+    <input id="suche" placeholder="Pub oder Ort" oninput="rendern()">
+  </div>
+  <button class="iconbtn" onclick="umgebung()" title="Pubs in der Nähe">+</button>
+</div>
+
+<button class="iconbtn" id="locbtn" onclick="standort()" title="Mein Standort"
+        style="position:fixed;right:14px;bottom:calc(72vh + 18px);z-index:940;font-size:19px">◎</button>
+
+<div id="sheet">
+  <div class="griff" onclick="umschalten()"></div>
+  <div class="sheetkopf" onclick="umschalten()">
+    <h2>Guinness in Franken</h2>
+    <span class="zahl" id="zahl"></span>
+    <span class="pintzaehler" onclick="event.stopPropagation();statistik()">🍺 <b id="heute">0</b> heute</span>
+  </div>
+  <div class="chips">
+    <div class="chip an" data-f="alle" onclick="filter('alle',this)">Alle</div>
+    <div class="chip" data-f="preis" onclick="filter('preis',this)">Mit Preis</div>
+    <div class="chip" data-f="geprueft" onclick="filter('geprueft',this)">Geprüft</div>
+    <div class="chip" data-f="naehe" onclick="filter('naehe',this)">In der Nähe</div>
+  </div>
+  <div id="genauigkeit" style="display:none;font-size:11.5px;color:var(--muted);padding:0 6px 8px"></div>
+  <div class="chips" id="radiuszeile" style="display:none">
+    <div class="chip" data-r="1" onclick="radius(1,this)">1 km</div>
+    <div class="chip" data-r="5" onclick="radius(5,this)">5 km</div>
+    <div class="chip an" data-r="10" onclick="radius(10,this)">10 km</div>
+    <div class="chip" data-r="25" onclick="radius(25,this)">25 km</div>
+    <div class="chip" data-r="0" onclick="radius(0,this)">überall</div>
+  </div>
+  <div class="liste" id="liste"></div>
+</div>
+
+<div id="detail">
+  <div class="kopf">
+    <div style="flex:1;min-width:0">
+      <h3 id="d_name"></h3>
+      <div class="dstatus" id="d_status"></div>
+    </div>
+    <button class="x" onclick="schliessen()">×</button>
+  </div>
+  <div class="adr" id="d_adr"></div>
+  <div class="preiszeile"><b id="d_preis"></b><span id="d_stand"></span></div>
+  <div class="links" id="d_links"></div>
+  <div id="d_special"></div>
+  <div id="d_extra"></div>
+  <div class="aktionen">
+    <button class="btn prim" id="d_best" onclick="dBest()">Gibt's hier</button>
+    <button class="btn sec" id="d_preisbtn" onclick="dPreis()">Preis melden</button>
+  </div>
+  <button class="btn prim" id="d_trink" onclick="pintTrinken()"
+          style="width:100%;margin-top:10px;background:var(--gold);color:#1a1408">🍺 Pint hier getrunken</button>
+</div>
+
+<div id="bewertung">
+  <div class="bkarte">
+    <h3>Wie war der Pint?</h3>
+    <div class="bunter" id="b_name"></div>
+    <div class="bzeile"><label>Schaum</label><div class="sterne" data-f="schaum"></div></div>
+    <div class="bzeile"><label>Temperatur</label><div class="sterne" data-f="temp"></div></div>
+    <div class="bzeile"><label>Gezapft</label><div class="sterne" data-f="zapf"></div></div>
+    <div class="baktionen">
+      <button class="btn sec" onclick="bewertungSchliessen()">Überspringen</button>
+      <button class="btn prim" onclick="bewertungSpeichern()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div id="angebote">
+  <div class="ukarte">
+    <div class="ukopf">
+      <div>
+        <h3>Dose im Angebot</h3>
+        <div class="uunter" id="aunter">Guinness aus dem Supermarkt-Prospekt</div>
+      </div>
+      <button class="x" onclick="angebote()">×</button>
+    </div>
+    <div class="uliste" id="aliste"></div>
+    <div class="uklein" style="padding:2px 4px 0">Quelle: Prospekt-Sammler (kaufDA, Marktguru). Preise ohne Pfand, Angaben ohne Gewähr — im Markt prüfen.</div>
+  </div>
+</div>
+
+<div id="ueber">
+  <div class="ukarte">
+    <div class="ukopf">
+      <div>
+        <h3>Where is my Pint?</h3>
+        <div class="uunter">Die wichtigste Frage nach 21 Uhr — endlich mit Antwort.</div>
+      </div>
+      <button class="x" onclick="ueberSchliessen()">×</button>
+    </div>
+    <div class="utext">
+      <p>Deutschland hat Tausende Kneipen. Ein Bruchteil zapft Guinness. Diese App zeigt dir,
+      welche: auf der Karte, mit Entfernung, Preis und der ehrlichen Angabe, ob es den Pint dort
+      wirklich noch gibt.</p>
+      <p><b>So funktioniert's</b></p>
+      <p>1. Öffnen, Standort erlauben, Radius wählen — 1, 5, 10 oder 25 Kilometer.<br>
+         2. Pub antippen. Preis, Telefon, Website, Speisekarte, Route.<br>
+         3. Pint getrunken? Eintragen und bewerten — Schaum, Temperatur, Zapfkunst.<br>
+         4. <b>Pub fehlt?</b> Auf „+" tippen: die App holt Bars und Restaurants aus der
+         Umgebung und zeigt sie als graue Punkte. Antippen, „Guinness hier?" bestätigen —
+         er steht in der Liste.</p>
+      <p><b>Was du beiträgst, fehlt den anderen.</b> Neuer Pub, gemeldeter Preis, entdecktes
+      Special, ein knappes „Gibt's hier" — drei Tipper, und die Karte wird besser.</p>
+      <p>Keine Werbeplattform, kein Reservierungssystem, keine Anleitung zum Selberzapfen.
+      Nur die eine Frage, kalt beantwortet.</p>
+      <p class="uklein">Prototyp · 19 Pubs in Franken · Preise noch lückenhaft · Daten lokal auf
+      dem Gerät · Karte: OpenStreetMap</p>
+    </div>
+  </div>
+</div>
+
+<div id="umgebung">
+  <div class="ukarte">
+    <div class="ukopf">
+      <div>
+        <h3>Pubs in der Nähe</h3>
+        <div class="uunter" id="uunter">Pubs, Bars und Restaurants aus OpenStreetMap</div>
+      </div>
+      <button class="x" onclick="umgebung()">×</button>
+    </div>
+    <div class="uliste" id="uliste"><div class="pz">Lade Pubs …</div></div>
+    <button class="mzeile" onclick="umgebung(); neuerPub()">✍️ Nicht dabei — manuell eintragen <span>›</span></button>
+  </div>
+</div>
+
+<div id="menu">
+  <div class="mkarte">
+    <div class="mkopf">
+      <h3>Dein Pint</h3>
+      <button class="x" onclick="menue()">×</button>
+    </div>
+    <div class="mzahlen">
+      <div><b id="m_heute">0</b><span>heute</span></div>
+      <div><b id="m_gesamt">0</b><span>insgesamt</span></div>
+      <div><b id="m_pubs">0</b><span>Pubs</span></div>
+    </div>
+    <div class="mjahr">
+      <div class="mjahr-kopf">Dein Pint-Jahr <span id="m_jahr"></span></div>
+      <div class="mjahr-text" id="m_jahrtext"></div>
+    </div>
+    <button class="mzeile" onclick="menue(); statistik()">📊 Statistik &amp; Abzeichen <span>›</span></button>
+    <button class="mzeile" onclick="angebote()">🛒 Dose im Angebot <span>›</span></button>
+    <button class="mzeile" onclick="pintTour()">🍺 Pint-Tour planen <span>›</span></button>
+    <button class="mzeile" onclick="nurBesuchte()">🗺️ Nur besuchte Pubs <span>›</span></button>
+    <button class="mzeile" onclick="teilen()">📸 Als Bild teilen <span>›</span></button>
+    <div class="mliste" id="m_liste"></div>
+    <button class="mzeile" onclick="ueber()">ℹ️ Über die App <span>›</span></button>
+    <button class="mzeile" onclick="zuruecksetzen()">🗑️ Meine Daten löschen <span>›</span></button>
+  </div>
+</div>
+
+<div id="stats">
+  <div class="karte">
+    <h3>Deine Pints</h3>
+    <div class="zahlen">
+      <div class="zahlbox"><b id="s_heute">0</b><span>heute</span></div>
+      <div class="zahlbox"><b id="s_woche">0</b><span>diese Woche</span></div>
+      <div class="zahlbox"><b id="s_gesamt">0</b><span>insgesamt</span></div>
+      <div class="zahlbox"><b id="s_pubs">0</b><span>verschiedene Pubs</span></div>
+      <div class="zahlbox"><b id="s_preise">0</b><span>Preise gemeldet</span></div>
+      <div class="zahlbox"><b id="s_neu">0</b><span>Pubs gefunden</span></div>
+    </div>
+    <div class="abzeichen" id="abzeichen"></div>
+    <button class="btn sec schliessen" onclick="statistik()">Schließen</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+const START = [{"name": "Irish Castle Pub", "stadt": "Nürnberg", "strasse": "Schlehengasse 31", "plz": "90402", "tel": "0911 224878", "status": "geprueft", "lat": 49.4488363, "lon": 11.0668663, "preis": null, "bestaetigt": null, "web": "https://www.irish-castle-pub.com/", "menu": "https://www.irish-castle-pub.com/karte", "preis_quelle": ""}, {"name": "Mulligan's Irish Pub, Bar und Grill", "stadt": "Nürnberg", "strasse": "Königstraße 71", "plz": "90402", "tel": "0911 21216450", "status": "geprueft", "lat": 49.4485898, "lon": 11.0804456, "preis": null, "bestaetigt": null, "web": "https://mulligansirishpub.de/", "menu": "", "preis_quelle": ""}, {"name": "The Old Shillelagh", "stadt": "Nürnberg", "strasse": "Schnieglinger Straße 236", "plz": "90427", "tel": "", "status": "geprueft", "lat": 49.4676986, "lon": 11.029164, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "Kilians Irish Pub", "stadt": "Nürnberg", "strasse": "Hallplatz 21", "plz": "90402", "tel": "", "status": "geprueft", "lat": 49.4488171, "lon": 11.0782016, "preis": null, "bestaetigt": null, "web": "https://kiliansirishpub.de/", "menu": "https://kiliansirishpub.de/food-drinks", "preis_quelle": ""}, {"name": "O'Sheas Irish Pub", "stadt": "Nürnberg", "strasse": "Engelhardsgasse 7", "plz": "90402", "tel": "0911-203210", "status": "plausibel", "lat": 49.4486764, "lon": 11.0696014, "preis": null, "bestaetigt": null, "web": "https://osheas.de/", "menu": "https://osheas.de/getraenke/", "preis_quelle": ""}, {"name": "Finnegan's Irish Pub", "stadt": "Nürnberg", "strasse": "Königstraße 80", "plz": "90402", "tel": "0911-203210", "status": "plausibel", "lat": 49.4476214, "lon": 11.0808408, "preis": null, "bestaetigt": null, "web": "https://finnegansirishpub.de/", "menu": "https://finnegansirishpub.de/getraenke/", "preis_quelle": ""}, {"name": "Dubliner Irish Pub & Sports Bar", "stadt": "Nürnberg", "strasse": "Königstraße 59", "plz": "90402", "tel": "", "status": "plausibel", "lat": 49.449075, "lon": 11.0799389, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "O'Toole's Schmiede", "stadt": "Nürnberg", "strasse": "Bärenschanzstraße 89", "plz": "90429", "tel": "", "status": "plausibel", "lat": 49.4525711, "lon": 11.0530154, "preis": null, "bestaetigt": null, "web": "https://www.otooles.de/", "menu": "", "preis_quelle": ""}, {"name": "Murphy's Law", "stadt": "Erlangen", "strasse": "Bismarckstraße 30", "plz": "91054", "tel": "09131 8297899", "status": "geprueft", "lat": 49.5979973, "lon": 11.0154366, "preis": null, "bestaetigt": null, "web": "https://murphys-pub.de/", "menu": "https://murphys-pub.de/menue/", "preis_quelle": ""}, {"name": "Goldener Mond", "stadt": "Erlangen", "strasse": "Innere Brucker Straße 18", "plz": "91054", "tel": "09131 8286205", "status": "geprueft", "lat": 49.595204, "lon": 11.0031747, "preis": null, "bestaetigt": null, "web": "https://goldenermond.de/", "menu": "https://goldenermond.de/", "preis_quelle": ""}, {"name": "Granny Mac's Irish Pub", "stadt": "Erlangen", "strasse": "Hauptstraße 106", "plz": "91054", "tel": "", "status": "plausibel", "lat": 49.6024187, "lon": 11.0039965, "preis": null, "bestaetigt": null, "web": "https://www.granny-macs.de/", "menu": "", "preis_quelle": ""}, {"name": "Cheers im Pfeifndurla", "stadt": "Fürth", "strasse": "Gustavstraße 36", "plz": "90762", "tel": "0911 47895856", "status": "geprueft", "lat": 49.4792515, "lon": 10.9888143, "preis": null, "bestaetigt": null, "web": "https://www.cheers-im-pfeifndurla.de/", "menu": "https://www.cheers-im-pfeifndurla.de/pubfood", "preis_quelle": ""}, {"name": "Irish Cottage", "stadt": "Fürth", "strasse": "Waagplatz 1", "plz": "90762", "tel": "", "status": "plausibel", "lat": 49.4785926, "lon": 10.9881768, "preis": null, "bestaetigt": null, "web": "https://irish-cottage-pub.de/", "menu": "https://irish-cottage-pub.de/Speisekarte", "preis_quelle": ""}, {"name": "Kilians Irish Pub", "stadt": "Bamberg", "strasse": "", "plz": "96047", "tel": "", "status": "offen", "lat": 49.8916044, "lon": 10.8868478, "preis": null, "bestaetigt": null, "web": "https://kiliansirishpub.de/", "menu": "", "preis_quelle": ""}, {"name": "Alte Wache", "stadt": "Forchheim", "strasse": "Paradeplatz 17A", "plz": "91301", "tel": "", "status": "geprueft", "lat": 49.718365, "lon": 11.060863, "preis": null, "bestaetigt": null, "web": "https://altewache.info/", "menu": "https://altewache.info/Speisekarte", "preis_quelle": ""}, {"name": "Cobbler's Irish Pub", "stadt": "Coburg", "strasse": "", "plz": "96450", "tel": "", "status": "offen", "lat": 50.2582226, "lon": 10.964561, "preis": null, "bestaetigt": null, "web": "https://www.cobblers.de/", "menu": "", "preis_quelle": ""}, {"name": "Fiddler's Green Irish Pub", "stadt": "Schweinfurt", "strasse": "Spitalstraße 32", "plz": "97421", "tel": "", "status": "plausibel", "lat": 50.0437455, "lon": 10.2324088, "preis": null, "bestaetigt": null, "web": "https://fiddlersgreenpub.de/", "menu": "https://fiddlersgreenpub.de/speisen-getraenke/", "preis_quelle": ""}, {"name": "Dubliner Irish Pub", "stadt": "Bayreuth", "strasse": "Wittelsbacherring 2", "plz": "95444", "tel": "0921/512630", "status": "plausibel", "lat": 49.9432536, "lon": 11.5698209, "preis": null, "bestaetigt": null, "web": "https://dubliner-bayreuth.de/", "menu": "", "preis_quelle": ""}, {"name": "Irish Pub Ansbach", "stadt": "Ansbach", "strasse": "Eyber Straße 15", "plz": "91522", "tel": "", "status": "geprueft", "lat": 49.3035489, "lon": 10.5820636, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}];
+const KEY = "pint_v3";
+let state = JSON.parse(localStorage.getItem(KEY) || '{"overrides":{},"neu":[],"log":[],"pints":[],"preise":[]}');
+if(!state.pints) state.pints = [];
+if(!state.preise) state.preise = [];
+if(!state.specials) state.specials = {};
+let aktiv = "alle", aktuell = null, karte, marker = {}, userPos = null, umkreis = 10;
+
+const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const speichern = () => localStorage.setItem(KEY, JSON.stringify(state));
+const datum = iso => iso ? new Date(iso).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"2-digit"}) : "unbestätigt";
+const farbe = l => l.status === "geprueft" ? "#3fa96a" : l.status === "plausibel" ? "#d8ae57" : "#c0605a";
+
+function alle(){
+  const neu = state.neu.map(n => Object.assign({status:"neu"}, n));
+  return START.concat(neu).map(l => Object.assign({}, l, state.overrides[l.name + "|" + l.stadt] || {}));
+}
+function distanz(l){
+  if(!userPos || !l.lat) return 9999;
+  return Math.hypot((l.lat - userPos[0]) * 111, (l.lon - userPos[1]) * 70);
+}
+function geoDaten(){
+  return {type:"FeatureCollection", features: alle().filter(l => l.lat).map(l => ({
+    type:"Feature",
+    properties:{key: l.name + "|" + l.stadt, farbe: farbe(l)},
+    geometry:{type:"Point", coordinates:[l.lon, l.lat]}
+  }))};
+}
+function aktualisierePunkte(){
+  const src = karte && karte.getSource("laeden");
+  if(src) src.setData(geoDaten());
+}
+function setzeMarker(l){ aktualisierePunkte(); }
+
+function standort(){
+  if(!navigator.geolocation){ alert("Standort nicht verfügbar"); return; }
+  navigator.geolocation.getCurrentPosition(p => {
+    userPos = [p.coords.latitude, p.coords.longitude];
+    document.getElementById("radiuszeile").style.display = "flex";
+    document.querySelectorAll(".chip[data-f]").forEach(c=>c.classList.toggle("an", c.dataset.f==="naehe"));
+    aktiv = "naehe";
+    window._genauigkeit = Math.round(p.coords.accuracy || 0);
+    umkreis = 1;
+    document.querySelectorAll(".chip[data-r]").forEach(c => c.classList.toggle("an", c.dataset.r === "1"));
+    karte.flyTo({center:[userPos[1], userPos[0]], zoom:16});
+    zeichneKreis();
+    rendern();
+    const hz = document.getElementById("genauigkeit");
+    if(hz){ hz.textContent = window._genauigkeit ? "Standort ± " + window._genauigkeit + " m" : "Standort gesetzt"; hz.style.display = "block"; }
+  }, () => alert("Standort nicht freigegeben"), {enableHighAccuracy:true, timeout:15000, maximumAge:0});
+}
+
+function zeichneKreis(){
+  if(!karte || !karte.getSource("kreis")) return;
+  const fc = {type:"FeatureCollection", features:[]};
+  if(userPos && umkreis > 0){
+    const lat = userPos[0], lon = userPos[1], punkte = [];
+    for(let i=0;i<=64;i++){
+      const a = i * Math.PI / 32;
+      punkte.push([lon + (umkreis/(111*Math.cos(lat*Math.PI/180)))*Math.cos(a), lat + (umkreis/111)*Math.sin(a)]);
+    }
+    punkte.push(punkte[0]);
+    fc.features.push({type:"Feature", properties:{}, geometry:{type:"Polygon", coordinates:[punkte]}});
+  }
+  karte.getSource("kreis").setData(fc);
+}
+
+function initKarte(){
+  karte = new maplibregl.Map({
+    container: "karte",
+    style: "https://tiles.openfreemap.org/styles/fiord",
+    center: [11.03, 49.53],
+    zoom: 11,
+    attributionControl: true
+  });
+
+  function setup(){
+    if(karte.getLayer("laeden-punkt")) return;
+    try {
+      if(!karte.getSource("laeden")) karte.addSource("laeden", {type:"geojson", data: geoDaten()});
+      if(!karte.getSource("kreis")) karte.addSource("kreis", {type:"geojson", data:{type:"FeatureCollection", features:[]}});
+      karte.addLayer({id:"kreis-fuellung", type:"fill", source:"kreis",
+        paint:{"fill-color":"#d8ae57","fill-opacity":0.12}});
+      karte.addLayer({id:"kreis-linie", type:"line", source:"kreis",
+        paint:{"line-color":"#d8ae57","line-width":1.4,"line-opacity":0.8}});
+      karte.addLayer({id:"laeden-punkt", type:"circle", source:"laeden",
+        paint:{"circle-radius":8, "circle-color":["get","farbe"],
+               "circle-stroke-color":"#0a0a0b", "circle-stroke-width":2.5}});
+      karte.on("click", "laeden-punkt", (e) => {
+        const f = e.features && e.features[0];
+        if(!f) return;
+        const l = alle().find(x => (x.name + "|" + x.stadt) === f.properties.key);
+        if(l) oeffne(l);
+      });
+      const hinweis = document.getElementById("ladehinweis");
+      if(hinweis) hinweis.remove();
+    } catch(err) { console.warn("Layer:", err.message); }
+  }
+
+  karte.on("load", setup);
+  karte.on("styledata", setup);
+  karte.on("idle", setup);
+  karte.on("error", (e) => {
+    const h = document.getElementById("ladehinweis");
+    if(h && e && e.error) h.textContent = "Karte meldet: " + e.error.message.slice(0, 60);
+  });
+  [0, 400, 1200, 2500].forEach(t => setTimeout(() => { karte.resize(); }, t));
+}
+
+function fokus(n, s, lat, lon){
+  if(!lat) return;
+  karte.flyTo({center:[lon, lat], zoom:15});
+  const l = alle().find(x => x.name === n && x.stadt === s);
+  if(l) oeffne(l);
+}
+
+function rendern(){
+  const q = (document.getElementById("suche").value||"").toLowerCase();
+  let liste = alle().filter(l => !q || l.name.toLowerCase().includes(q) || l.stadt.toLowerCase().includes(q));
+  if(aktiv === "preis") liste = liste.filter(l => l.preis);
+  if(aktiv === "geprueft") liste = liste.filter(l => l.status === "geprueft");
+  if(aktiv === "besucht"){
+    const b = new Set(state.pints.map(p => p.name + "|" + p.stadt));
+    liste = liste.filter(l => b.has(l.name + "|" + l.stadt));
+  }
+  if(aktiv === "naehe" && userPos){
+    if(umkreis > 0) liste = liste.filter(l => l.lat && distanz(l) <= umkreis);
+    liste = liste.slice().sort((a,b)=>distanz(a)-distanz(b));
+  } else if(aktiv === "naehe" && !userPos){
+    standort();
+  }
+  document.getElementById("zahl").textContent = liste.length + " Pubs";
+  document.getElementById("liste").innerHTML = liste.map(l=>`
+    <div class="row" onclick='oeffne(${JSON.stringify(l).replace(/'/g,"&#39;")})'>
+      <span class="dot" style="background:${farbe(l)}"></span>
+      <div class="info">
+        <div class="nm">${esc(l.name)}</div>
+        <div class="ort">${esc(l.stadt)}${aktiv==="naehe"&&l.lat?" · "+(distanz(l)).toFixed(1)+" km":""}</div>
+      </div>
+      <div class="preis">${l.preis ? l.preis.toFixed(2)+" €<small>Pint</small>" : '<span class="preisfrage">Preis?</span>'} </div>
+    </div>`).join("") || '<div style="padding:26px 12px;color:#8d877e;font-size:13px">Nichts gefunden.</div>';
+}
+function filter(f, el){
+  aktiv = f;
+  document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("an", c===el));
+  rendern();
+}
+function umschalten(){ document.getElementById("sheet").classList.toggle("zu"); }
+function oeffne(l){
+  aktuell = l;
+  document.getElementById("d_name").textContent = l.name;
+  document.getElementById("d_status").innerHTML =
+    `<i style="background:${farbe(l)}"></i>${l.status === "geprueft" ? "geprüft" : l.status === "plausibel" ? "Guinness unbestätigt" : "nur Ort bekannt"}`;
+  document.getElementById("d_adr").textContent =
+    (l.strasse ? l.strasse+", " : "") + l.plz + " " + l.stadt;
+  const pb = document.getElementById("d_preis");
+  pb.textContent = l.preis ? l.preis.toFixed(2)+" €" : "Preis unbekannt";
+  pb.classList.toggle("kein", !l.preis);
+  document.getElementById("d_stand").innerHTML = l.preis
+    ? "· Pint · " + datum(l.bestaetigt)
+    : '<span style="display:block;line-height:1.45;max-width:220px">Marktwert Bayern 6,86 € · 11 Pubs (TheGuinnessMap). Hier noch nicht gemeldet.</span>';
+
+  const links = [];
+  if(l.tel) links.push(`<a href="tel:${esc(String(l.tel).replace(/[^0-9+]/g,""))}">📞 ${esc(l.tel)}</a>`);
+  if(l.web) links.push(`<a href="${esc(l.web)}" target="_blank" rel="noopener">Website ↗</a>`);
+  if(l.menu) links.push(`<a href="${esc(l.menu)}" target="_blank" rel="noopener">Speisekarte ↗</a>`);
+  if(l.lat) links.push(`<a href="https://www.openstreetmap.org/directions?to=${l.lat}%2C${l.lon}" target="_blank" rel="noopener">Route ↗</a>`);
+  document.getElementById("d_links").innerHTML = links.join("");
+
+  const sp = state.specials[l.name + "|" + l.stadt];
+  document.getElementById("d_special").innerHTML = sp
+    ? `<div class="special"><span class="ico">🎟️</span><div class="txt"><b>Special</b>${esc(sp.text)}` +
+      `<br><small>gemeldet am ${new Date(sp.zeit).toLocaleDateString("de-DE")}</small></div></div>`
+    : `<button class="specialknopf" onclick="specialMelden()">🎟️ Special melden — z. B. „Guinness + Los"</button>`;
+
+  const score = pubScore(l), letzter = letzterBesuch(l);
+  const verlauf = preisVerlauf(l);
+  const teile = [];
+  if(score) teile.push(`<div class="dzeile"><span>Pub-Score</span><b>${score.toFixed(1)} / 5</b></div>`);
+  if(letzter) teile.push(`<div class="dzeile"><span>Zuletzt hier</span><b>${new Date(letzter).toLocaleDateString("de-DE")}</b></div>`);
+  if(verlauf.length > 1){
+    const alt = verlauf[verlauf.length-1].preis, neu = verlauf[0].preis;
+    const diff = neu - alt;
+    teile.push(`<div class="dzeile"><span>Preisverlauf</span><b>${alt.toFixed(2)} → ${neu.toFixed(2)} €` +
+               ` (${diff === 0 ? "unverändert" : (diff > 0 ? "+" : "") + diff.toFixed(2) + " €"})</b></div>`);
+  }
+  document.getElementById("d_extra").innerHTML = teile.join("");
+  document.getElementById("detail").classList.add("offen");
+  if(l.lat) karte.flyTo({center:[l.lon, l.lat], zoom:15});
+}
+function schliessen(){ document.getElementById("detail").classList.remove("offen"); aktuell=null; }
+function setz(l,f,w){
+  const k=l.name+"|"+l.stadt;
+  state.overrides[k]=Object.assign({},state.overrides[k],{[f]:w}); speichern();
+  const neu = alle().find(x=>x.name===l.name&&x.stadt===l.stadt);
+  aktualisierePunkte();
+  rendern(); if(aktuell) oeffne(neu);
+}
+let bewertungPint = null, bewertungWerte = {schaum:0, temp:0, zapf:0};
+
+function pintsHier(l){
+  return state.pints.filter(p => p.name === l.name && p.stadt === l.stadt);
+}
+function pubScore(l){
+  const b = pintsHier(l).filter(p => p.schaum || p.temp || p.zapf);
+  if(!b.length) return null;
+  const summe = b.reduce((a,p) => a + ((p.schaum||0)+(p.temp||0)+(p.zapf||0))/3, 0);
+  return summe / b.length;
+}
+function letzterBesuch(l){
+  const p = pintsHier(l).sort((a,b) => new Date(b.zeit) - new Date(a.zeit))[0];
+  return p ? p.zeit : null;
+}
+function preisVerlauf(l){
+  return state.preise.filter(p => p.name === l.name && p.stadt === l.stadt)
+                     .sort((a,b) => new Date(b.zeit) - new Date(a.zeit));
+}
+function renderAlles(){
+  rendern();
+  if(aktuell){
+    const neu = alle().find(x => x.name === aktuell.name && x.stadt === aktuell.stadt);
+    if(neu) oeffne(neu);
+  }
+}
+function pintTrinken(){
+  if(!aktuell) return;
+  bewertungPint = {name: aktuell.name, stadt: aktuell.stadt, zeit: new Date().toISOString()};
+  bewertungWerte = {schaum:0, temp:0, zapf:0};
+  document.getElementById("b_name").textContent = aktuell.name + (aktuell.stadt ? " · " + aktuell.stadt : "");
+  document.querySelectorAll(".sterne").forEach(box => {
+    box.innerHTML = "";
+    for(let i=1;i<=5;i++){
+      const b = document.createElement("button");
+      b.className = "stern";
+      b.textContent = i;
+      b.onclick = () => { bewertungWerte[box.dataset.f] = i; maleSterne(); };
+      box.appendChild(b);
+    }
+  });
+  maleSterne();
+  document.getElementById("bewertung").classList.add("offen");
+  schliessen();
+}
+function maleSterne(){
+  document.querySelectorAll(".sterne").forEach(box => {
+    const wert = bewertungWerte[box.dataset.f] || 0;
+    [...box.children].forEach((b,i) => b.classList.toggle("an", i < wert));
+  });
+}
+function bewertungSchliessen(){
+  document.getElementById("bewertung").classList.remove("offen");
+  bewertungPint = null;
+}
+function bewertungSpeichern(){
+  if(!bewertungPint) return;
+  state.pints.unshift(Object.assign({}, bewertungPint, bewertungWerte));
+  speichern(); zaehlePints();
+  log(`🍺 Pint getrunken · <b>${esc(bewertungPint.name)}</b>`);
+  bewertungSchliessen();
+  renderAlles();
+}
+function zaehlePints(){
+  const heute = new Date().toISOString().slice(0,10);
+  const n = state.pints.filter(p => p.zeit.slice(0,10) === heute).length;
+  document.getElementById("heute").textContent = n;
+}
+function menue(){
+  const el = document.getElementById("menu");
+  el.classList.toggle("offen");
+  if(!el.classList.contains("offen")) return;
+  const heute = new Date().toISOString().slice(0,10);
+  document.getElementById("m_heute").textContent = state.pints.filter(p=>p.zeit.slice(0,10)===heute).length;
+  document.getElementById("m_gesamt").textContent = state.pints.length;
+  document.getElementById("m_pubs").textContent = new Set(state.pints.map(p=>p.name)).size;
+  document.getElementById("m_jahr").textContent = jahrStats().jahr;
+  document.getElementById("m_jahrtext").textContent = menueText();
+  document.getElementById("m_liste").innerHTML = state.pints.length
+    ? state.pints.slice(0,8).map(p => `<div class="pz"><b>${esc(p.name)}</b><span>${new Date(p.zeit).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</span></div>`).join("")
+    : '<div class="pz" style="border:0">Noch kein Pint eingetragen. Öffne einen Pub und tippe auf „Pint hier getrunken".</div>';
+}
+const ANGEBOTE_FALLBACK = [{"markt": "Penny", "produkt": "Guinness Draught", "menge": "0,44-l-Dose", "preis": 1.11, "uvp": 1.64, "gueltig_bis": "2026-10-24", "plz": "91352", "url": "https://www.penny.de/angebote", "quelle": "kaufDA Prospekt · Link zur Kette", "gefunden_am": "2026-10-21"}, {"markt": "Netto Marken-Discount", "produkt": "Guinness Irish Draught", "menge": "Packung", "preis": 4.99, "uvp": 6.49, "gueltig_bis": "2026-10-24", "plz": "91352", "url": "https://www.netto-online.de/angebote", "quelle": "kaufDA Prospekt · Link zur Kette", "gefunden_am": "2026-10-21"}];
+let angeboteDaten = ANGEBOTE_FALLBACK;
+
+function angebote(){
+  const el = document.getElementById("angebote");
+  el.classList.toggle("offen");
+  if(!el.classList.contains("offen")) return;
+  zeichneAngebote();
+  fetch("angebote.json?ts=" + Date.now())
+    .then(r => r.ok ? r.json() : null)
+    .then(d => { if(Array.isArray(d) && d.length){ angeboteDaten = d; zeichneAngebote(); } })
+    .catch(() => {});
+}
+function zeichneAngebote(){
+  const liste = (angeboteDaten || []).slice().sort((a,b) => (a.preis||99) - (b.preis||99));
+  const el = document.getElementById("aliste");
+  if(!liste.length){
+    el.innerHTML = '<div class="angebot"><div class="info">Diese Woche kein Guinness im Angebot gefunden. Kommt vor — schau nächste Woche wieder rein.</div></div>';
+    return;
+  }
+  el.innerHTML = liste.map(a => a.url ? `
+    <a class="angebot" href="${esc(a.url)}" target="_blank" rel="noopener">
+      <div class="info">
+        <div class="mk">${esc(a.markt)}</div>
+        <div class="pr">${esc(a.produkt)} · ${esc(a.menge)}</div>
+        <div class="gueltig">gültig bis ${a.gueltig_bis ? new Date(a.gueltig_bis).toLocaleDateString("de-DE") : "?"}</div>
+      </div>
+      <div class="betrag">
+        <b>${a.preis ? a.preis.toFixed(2) + " €" : "?"}</b>
+        <s>${a.uvp ? "UVP " + a.uvp.toFixed(2) + " €" : ""}</s>
+      </div>
+    </a>` : `
+    <div class="angebot">
+      <div class="info">
+        <div class="mk">${esc(a.markt)}</div>
+        <div class="pr">${esc(a.produkt)} · ${esc(a.menge)}</div>
+        <div class="gueltig">gültig bis ${a.gueltig_bis ? new Date(a.gueltig_bis).toLocaleDateString("de-DE") : "?"}</div>
+      </div>
+      <div class="betrag"><b>${a.preis ? a.preis.toFixed(2) + " €" : "?"}</b></div>
+    </div>`).join("");
+}
+function ueberSchliessen(){ document.getElementById("ueber").classList.remove("offen"); }
+function ueber(){
+  menue();
+  document.getElementById("ueber").classList.add("offen");
+}
+function ueberAlt(){
+  alert("Where is my Pint? · Prototyp · 19 Pubs in Franken · Karte: OpenStreetMap · Daten teils ungeprüft, Preise noch nicht gemeldet · Alles läuft lokal auf dem Gerät, keine Konten, kein Server, keine Werbung.");
+}
+function zuruecksetzen(){
+  if(confirm("Alle eigenen Einträge löschen? Pints, Preis-Meldungen und neue Pubs werden entfernt.")){
+    state = {overrides:{}, neu:[], log:[], pints:[]};
+    speichern(); zaehlePints(); menue();
+    document.getElementById("menu").classList.remove("offen");
+    location.reload();
+  }
+}
+function jahrStats(){
+  const jahr = new Date().getFullYear();
+  const p = state.pints.filter(x => new Date(x.zeit).getFullYear() === jahr);
+  const proLokal = {};
+  p.forEach(x => { const k = x.name; proLokal[k] = (proLokal[k]||0) + 1; });
+  const top = Object.entries(proLokal).sort((a,b) => b[1]-a[1])[0];
+  const staedte = new Set(p.map(x => x.stadt));
+  const preise = state.preise.filter(x => new Date(x.zeit).getFullYear() === jahr).map(x => x.preis);
+  const schnitt = preise.length ? preise.reduce((a,b)=>a+b,0)/preise.length : null;
+  const tage = new Set(p.map(x => x.zeit.slice(0,10)));
+  let straehne = 0;
+  for(let d = new Date(); tage.has(d.toISOString().slice(0,10)); d.setDate(d.getDate()-1)) straehne++;
+  return {jahr, anzahl: p.length, top, staedte: staedte.size, schnitt, straehne, tage: tage.size};
+}
+function menueText(){
+  const j = jahrStats();
+  if(!j.anzahl) return "Noch kein Pint in " + j.jahr + ". Öffne einen Pub und tippe auf Pint hier getrunken.";
+  return `${j.anzahl} Pints in ${j.jahr}` +
+    (j.top ? ` · Lieblingslokal: ${j.top[0]} (${j.top[1]}×)` : "") +
+    ` · ${j.staedte} ${j.staedte === 1 ? "Stadt" : "Städte"}` +
+    (j.schnitt ? ` · Ø ${j.schnitt.toFixed(2)} €` : "") +
+    (j.straehne > 1 ? ` · ${j.straehne} Tage in Folge` : "");
+}
+function pintTour(){
+  const start = userPos || [karte.getCenter().lat, karte.getCenter().lng];
+  const kandidaten = alle().filter(l => l.lat)
+    .map(l => ({l, d: Math.hypot(l.lat-start[0], l.lon-start[1])}))
+    .sort((a,b) => a.d - b.d).slice(0,3);
+  if(kandidaten.length < 2){ alert("Zu wenige Pubs mit Position in der Nähe."); return; }
+  const weg = kandidaten.map(k => `${k.l.lat}%2C${k.l.lon}`).join("%3B");
+  const namen = kandidaten.map(k => k.l.name).join(" → ");
+  menue();
+  window.open(`https://www.openstreetmap.org/directions?route=${weg}` , "_blank");
+  log(`Pint-Tour · ${esc(namen)}`);
+}
+function nurBesuchte(){
+  const besucht = new Set(state.pints.map(p => p.name + "|" + p.stadt));
+  const anzahl = alle().filter(l => besucht.has(l.name + "|" + l.stadt)).length;
+  if(!anzahl){ alert("Noch keine besuchten Pubs. Trage einen Pint ein."); return; }
+  aktiv = "besucht";
+  document.querySelectorAll(".chip[data-f]").forEach(c => c.classList.toggle("an", c.dataset.f === "besucht"));
+  menue();
+  rendern();
+}
+function teilen(){
+  const j = jahrStats();
+  const c = document.createElement("canvas");
+  c.width = 1080; c.height = 1350;
+  const x = c.getContext("2d");
+  x.fillStyle = "#0a0a0b"; x.fillRect(0,0,1080,1350);
+  x.strokeStyle = "#c8a04a"; x.lineWidth = 3; x.strokeRect(40,40,1000,1270);
+  x.fillStyle = "#c8a04a"; x.font = "600 34px -apple-system, Helvetica, Arial";
+  x.fillText("WHERE IS MY PINT?", 90, 150);
+  x.fillStyle = "#f4f1ec"; x.font = "700 150px -apple-system, Helvetica, Arial";
+  x.fillText(String(j.anzahl), 90, 330);
+  x.font = "400 40px -apple-system, Helvetica, Arial"; x.fillStyle = "#8d877e";
+  x.fillText("Pints in " + j.jahr, 90, 385);
+  x.font = "400 38px -apple-system, Helvetica, Arial"; x.fillStyle = "#f4f1ec";
+  let y = 490;
+  if(j.top){ x.fillText("Lieblingslokal: " + j.top[0], 90, y); y += 60; }
+  x.fillText(j.staedte + " Städte", 90, y); y += 60;
+  if(j.schnitt){ x.fillText("Ø " + j.schnitt.toFixed(2) + " € pro Pint", 90, y); y += 60; }
+  if(j.straehne) x.fillText(j.straehne + " Tage in Folge", 90, y);
+  const letzte = state.pints.slice(0,6);
+  y = 820; x.fillStyle = "#8d877e"; x.font = "400 30px -apple-system, Helvetica, Arial";
+  x.fillText("Zuletzt:", 90, y); y += 52;
+  x.fillStyle = "#f4f1ec"; x.font = "400 32px -apple-system, Helvetica, Arial";
+  letzte.forEach(p => { x.fillText("· " + p.name, 90, y); y += 46; });
+  x.fillStyle = "#8d877e"; x.font = "400 26px -apple-system, Helvetica, Arial";
+  x.fillText("Prototyp · whereismypint", 90, 1260);
+  c.toBlob(b => {
+    if(navigator.share && navigator.canShare){
+      const f = new File([b], "mein-pint-jahr.png", {type:"image/png"});
+      if(navigator.canShare({files:[f]})){ navigator.share({files:[f], title:"Mein Pint-Jahr"}).catch(()=>{}); return; }
+    }
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(b); a.download = "mein-pint-jahr.png"; a.click();
+  }, "image/png");
+}
+function statistik(){
+  const el = document.getElementById("stats");
+  el.classList.toggle("offen");
+  if(!el.classList.contains("offen")) return;
+  const heute = new Date().toISOString().slice(0,10);
+  const vor7 = Date.now() - 7*864e5;
+  const pubs = new Set(state.pints.map(p => p.name));
+  const preise = state.log.filter(l => l.text.includes("Preis")).length;
+  const neu = state.log.filter(l => l.text.startsWith("Neu")).length;
+  document.getElementById("s_heute").textContent = state.pints.filter(p=>p.zeit.slice(0,10)===heute).length;
+  document.getElementById("s_woche").textContent = state.pints.filter(p=>new Date(p.zeit) >= vor7).length;
+  document.getElementById("s_gesamt").textContent = state.pints.length;
+  document.getElementById("s_pubs").textContent = pubs.size;
+  document.getElementById("s_preise").textContent = preise;
+  document.getElementById("s_neu").textContent = neu;
+  const abz = [
+    ["Erster Pint", state.pints.length >= 1],
+    ["Fünf Pints", state.pints.length >= 5],
+    ["Zehn Pubs", pubs.size >= 10],
+    ["Preisjäger", preise >= 1],
+    ["Fünf Preise", preise >= 5],
+    ["Entdecker", neu >= 1],
+    ["Franken-Runde", pubs.size >= 5]
+  ];
+  document.getElementById("abzeichen").innerHTML =
+    abz.map(([n,an]) => `<span class="abz ${an?"":"aus"}">${an?"✓ ":""}${n}</span>`).join("");
+}
+function log(t){ state.log.unshift({text:t,zeit:new Date().toISOString()}); speichern(); }
+function dBest(){
+  if(!aktuell) return;
+  setz(aktuell,"bestaetigt",new Date().toISOString()); setz(aktuell,"status","geprueft");
+  log(`<b>${esc(aktuell.name)}</b> bestätigt`); schliessen();
+}
+function dPreis(){
+  if(!aktuell) return;
+  const v = prompt(`Preis für ein Pint bei ${aktuell.name} (€):`);
+  const p = parseFloat(String(v).replace(",","."));
+  if(!isNaN(p)&&p>0){
+    setz(aktuell,"preis",p);
+    state.preise.unshift({name: aktuell.name, stadt: aktuell.stadt, preis: p, zeit: new Date().toISOString()});
+    speichern();
+    log(`Preis <b>${p.toFixed(2)} €</b> · ${esc(aktuell.name)}`);
+    renderAlles();
+  }
+}
+let umgebungsDaten = [];
+function umgebung(){
+  const el = document.getElementById("umgebung");
+  el.classList.toggle("offen");
+  if(!el.classList.contains("offen")){
+    if(window._pois){ window._pois.forEach(m => karte.removeLayer(m)); window._pois = []; }
+    return;
+  }
+  ladeUmgebung();
+}
+function ladeUmgebung(){
+  const c = karte.getCenter();
+  const dl = 0.035, dn = 0.022;
+  const box = [c.lng - dl, c.lat + dn, c.lng + dl, c.lat - dn].join(",");
+  document.getElementById("uliste").innerHTML = '<div class="pz">Lade Pubs …</div>';
+  const kategorien = ["pub", "bar", "restaurant"];
+  const bekannt = new Set(alle().map(l => (l.name || "").toLowerCase()));
+  const gesehen = new Set();
+  const ergebnisse = [];
+  let offen = kategorien.length;
+  kategorien.forEach(kat => {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=25&bounded=1&viewbox=${box}&q=${kat}`;
+    fetch(url, {headers:{"Accept":"application/json"}})
+      .then(r => r.json())
+      .then(liste => {
+        liste.forEach(x => {
+          const name = (x.display_name || "").split(",")[0].trim();
+          if(!name || bekannt.has(name.toLowerCase())) return;
+          const key = name.toLowerCase() + Math.round(parseFloat(x.lat) * 500);
+          if(gesehen.has(key)) return;
+          gesehen.add(key);
+          const teile = (x.display_name || "").split(",").map(t => t.trim())
+                          .filter(t => t && !/^[0-9]+[a-z]?$/i.test(t));
+          const adr = teile.slice(1,3).join(" · ");
+          ergebnisse.push({name, lat: parseFloat(x.lat), lon: parseFloat(x.lon), adr, kat});
+        });
+      })
+      .catch(()=>{})
+      .finally(() => {
+        offen--;
+        if(offen === 0){
+          const rang = k => k === "pub" ? 0 : k === "bar" ? 1 : 2;
+          umgebungsDaten = ergebnisse.sort((a,b) =>
+            (rang(a.kat) - rang(b.kat)) ||
+            (Math.hypot(a.lat - c.lat, a.lon - c.lng) - Math.hypot(b.lat - c.lat, b.lon - c.lng)));
+          zeichneUmgebung(); poiAufKarte();
+        }
+      });
+  });
+}
+function poiAufKarte(){
+  if(window._pois) window._pois.forEach(m => karte.removeLayer(m));
+  window._pois = [];
+  umgebungsDaten.forEach((x, i) => {
+    const m = L.circleMarker([x.lat, x.lon], {radius:6, color:"#0a0a0b", weight:2,
+      fillColor:"#6b6b74", fillOpacity:1}).addTo(karte);
+    m.on("click", () => poiWaehlen(i));
+    window._pois.push(m);
+  });
+}
+function poiWaehlen(i){
+  const x = umgebungsDaten[i];
+  if(!x) return;
+  if(confirm(x.name + " — Guinness vom Fass hier? Als Pub hinzufügen?")) osmWaehlen(i);
+}
+function zeichneUmgebung(){
+  const el = document.getElementById("uliste");
+  if(!umgebungsDaten.length){
+    el.innerHTML = '<div class="pz" style="border:0">Keine weiteren Pubs in diesem Kartenausschnitt. Karte verschieben oder manuell eintragen.</div>';
+    return;
+  }
+  el.innerHTML = umgebungsDaten.map((x,i) => `
+    <div class="row" onclick='osmWaehlen(${i})'>
+      <span class="dot" style="background:#4a4a52"></span>
+      <div class="info">
+        <div class="nm">${esc(x.name)}</div>
+        <div class="ort">${esc(x.kat)}${x.adr ? " · " + esc(x.adr) : ""}</div>
+      </div>
+      <div class="preis" style="font-size:12px;color:var(--muted)">hinzufügen</div>
+    </div>`).join("");
+}
+function osmWaehlen(i){
+  const x = umgebungsDaten[i];
+  if(!x) return;
+  const stadt = (x.adr || "").split(",").pop().trim() || "";
+  state.neu.push({name: x.name, stadt, strasse: "", plz: "", tel: "", web: "", menu: "",
+                  lat: x.lat, lon: x.lon, preis: null, bestaetigt: null, status: "neu"});
+  speichern();
+  const neu = alle().find(l => l.name === x.name && l.lat === x.lat);
+  aktualisierePunkte(); rendern();
+  log(`Gefunden · <b>${esc(x.name)}</b>`);
+  umgebungsDaten.splice(i,1); zeichneUmgebung();
+  document.getElementById("umgebung").classList.remove("offen");
+  oeffne(neu);
+}
+function neuerPub(){
+  const n=prompt("Name des Pubs:"); if(!n) return;
+  const s=prompt("Stadt:"); if(!s) return;
+  const st=prompt("Straße (optional):")||"";
+  fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(st+', '+s+', Deutschland')}`)
+    .then(r=>r.json()).then(res=>{
+      const lat=res[0]?parseFloat(res[0].lat):null, lon=res[0]?parseFloat(res[0].lon):null;
+      state.neu.push({name:n,stadt:s,strasse:st,plz:"",tel:"",lat,lon,preis:null,bestaetigt:null});
+      speichern(); setzeMarker(alle().find(x=>x.name===n&&x.stadt===s)); rendern();
+      log(`Neuer Pub · <b>${esc(n)}</b>`);
+    });
+}
+window.addEventListener("load",()=>{ initKarte(); rendern(); zaehlePints();
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').then(reg => reg.update()).catch(()=>{});
+    document.addEventListener('visibilitychange', () => {
+      if(document.visibilityState === 'visible' && navigator.serviceWorker.controller){
+        navigator.serviceWorker.getRegistration().then(r => r && r.update());
+      }
+    });
+  }
+});
+</script>
+</body>
+</html>
