@@ -126,6 +126,25 @@
     border-radius:20px;padding:18px}
   #scanner video{width:100%;border-radius:14px;background:#000;display:block}
   #scanner .rahmen{position:relative;margin-top:10px}
+  #chat{position:fixed;inset:0;z-index:1260;display:none;background:rgba(6,6,7,.95);
+    backdrop-filter:blur(6px);padding:18px}
+  #chat.offen{display:flex;align-items:flex-end;justify-content:center}
+  #chat .ckarte{width:100%;max-width:430px;height:min(78vh,640px);background:var(--sheet);
+    border:1px solid var(--line);border-radius:20px 20px 18px 18px;display:flex;flex-direction:column;overflow:hidden}
+  #chat .ckopf{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+  #chat .ckopf h3{margin:0;font-size:16px;flex:1}
+  #chat .verlauf{flex:1;overflow:auto;padding:14px 14px 6px;display:flex;flex-direction:column;gap:8px}
+  .bubble{max-width:78%;padding:9px 12px;border-radius:14px;font-size:13.5px;line-height:1.45;word-wrap:break-word}
+  .bubble.ich{align-self:flex-end;background:#2a2418;border:1px solid #3a3021;color:var(--ink)}
+  .bubble.du{align-self:flex-start;background:var(--sheet2);border:1px solid var(--line);color:var(--ink)}
+  .bubble small{display:block;font-size:10px;color:var(--muted);margin-top:3px}
+  #chat .csend{display:flex;gap:8px;padding:10px 12px 14px;border-top:1px solid var(--line)}
+  #chat .csend input{flex:1;padding:12px;border-radius:12px;border:1px solid var(--line);
+    background:var(--sheet2);color:var(--ink);font-size:14px;font-family:inherit}
+  #chat .csend button{padding:0 16px;border:0;border-radius:12px;background:var(--gold);color:#1a1408;
+    font-weight:650;font-size:14px;font-family:inherit;cursor:pointer}
+  .bneu{display:inline-flex;min-width:18px;height:18px;padding:0 5px;margin-left:6px;border-radius:9px;
+    background:var(--gold);color:#1a1408;font-size:11px;font-weight:700;align-items:center;justify-content:center;vertical-align:middle}
   #buddy{position:fixed;inset:0;z-index:1200;display:none;background:rgba(6,6,7,.9);
     backdrop-filter:blur(8px);overflow:auto;padding:18px}
   #buddy.offen{display:block}
@@ -620,6 +639,21 @@
   </div>
 </div>
 
+<div id="chat">
+  <div class="ckarte">
+    <div class="ckopf">
+      <h3 id="c_name">Chat</h3>
+      <button class="bknopf weg" onclick="verlaufLoeschen()">Verlauf löschen</button>
+      <button class="x" onclick="chatSchliessen()">×</button>
+    </div>
+    <div class="verlauf" id="c_verlauf"></div>
+    <div class="csend">
+      <input id="c_text" maxlength="500" placeholder="Nachricht …" autocomplete="off">
+      <button onclick="sendeNachricht()">Senden</button>
+    </div>
+  </div>
+</div>
+
 <div id="buddy">
   <div class="bkarte">
     <div class="mkopf">
@@ -769,7 +803,7 @@
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
-const START = [{"name": "Irish Castle Pub", "stadt": "Nürnberg", "strasse": "Schlehengasse 31", "plz": "90402", "tel": "0911 224878", "status": "geprueft", "lat": 49.4488363, "lon": 11.0668663, "preis": null, "bestaetigt": null, "web": "https://www.irish-castle-pub.com/", "menu": "https://www.irish-castle-pub.com/karte", "preis_quelle": ""}, {"name": "Mulligan's Irish Pub, Bar und Grill", "stadt": "Nürnberg", "strasse": "Königstraße 71", "plz": "90402", "tel": "0911 21216450", "status": "geprueft", "lat": 49.4485898, "lon": 11.0804456, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "The Old Shillelagh", "stadt": "Nürnberg", "strasse": "Schnieglinger Straße 236", "plz": "90427", "tel": "", "status": "geprueft", "lat": 49.4676986, "lon": 11.029164, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "Kilians Irish Pub", "stadt": "Nürnberg", "strasse": "Hallplatz 21", "plz": "90402", "tel": "", "status": "geprueft", "lat": 49.4488171, "lon": 11.0782016, "preis": null, "bestaetigt": null, "web": "https://kiliansirishpub.de/", "menu": "https://kiliansirishpub.de/food-drinks", "preis_quelle": ""}, {"name": "O'Sheas Irish Pub", "stadt": "Nürnberg", "strasse": "Engelhardsgasse 7", "plz": "90402", "tel": "0911-203210", "status": "plausibel", "lat": 49.4486764, "lon": 11.0696014, "preis": null, "bestaetigt": null, "web": "https://osheas.de/", "menu": "https://osheas.de/getraenke/", "preis_quelle": ""}, {"name": "Finnegan's Irish Pub", "stadt": "Nürnberg", "strasse": "Königstraße 80", "plz": "90402", "tel": "0911-203210", "status": "plausibel", "lat": 49.4476214, "lon": 11.0808408, "preis": null, "bestaetigt": null, "web": "https://finnegansirishpub.de/", "menu": "https://finnegansirishpub.de/getraenke/", "preis_quelle": ""}, {"name": "Dubliner Irish Pub & Sports Bar", "stadt": "Nürnberg", "strasse": "Königstraße 59", "plz": "90402", "tel": "", "status": "plausibel", "lat": 49.449075, "lon": 11.0799389, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "O'Toole's Schmiede", "stadt": "Nürnberg", "strasse": "Bärenschanzstraße 89", "plz": "90429", "tel": "", "status": "plausibel", "lat": 49.4525711, "lon": 11.0530154, "preis": null, "bestaetigt": null, "web": "https://www.otooles.de/", "menu": "", "preis_quelle": ""}, {"name": "Murphy's Law", "stadt": "Erlangen", "strasse": "Bismarckstraße 30", "plz": "91054", "tel": "09131 8297899", "status": "geprueft", "lat": 49.5979973, "lon": 11.0154366, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "Goldener Mond", "stadt": "Erlangen", "strasse": "Innere Brucker Straße 18", "plz": "91054", "tel": "09131 8286205", "status": "geprueft", "lat": 49.595204, "lon": 11.0031747, "preis": null, "bestaetigt": null, "web": "https://goldenermond.de/", "menu": "https://goldenermond.de/", "preis_quelle": ""}, {"name": "Granny Mac's Irish Pub", "stadt": "Erlangen", "strasse": "Hauptstraße 106", "plz": "91054", "tel": "", "status": "plausibel", "lat": 49.6024187, "lon": 11.0039965, "preis": null, "bestaetigt": null, "web": "https://www.granny-macs.de/", "menu": "", "preis_quelle": ""}, {"name": "Cheers im Pfeifndurla", "stadt": "Fürth", "strasse": "Gustavstraße 36", "plz": "90762", "tel": "0911 47895856", "status": "geprueft", "lat": 49.4792515, "lon": 10.9888143, "preis": null, "bestaetigt": null, "web": "https://www.cheers-im-pfeifndurla.de/", "menu": "https://www.cheers-im-pfeifndurla.de/pubfood", "preis_quelle": ""}, {"name": "Irish Cottage", "stadt": "Fürth", "strasse": "Waagplatz 1", "plz": "90762", "tel": "", "status": "plausibel", "lat": 49.4785926, "lon": 10.9881768, "preis": null, "bestaetigt": null, "web": "https://www.irishcottagepub.com/", "menu": "", "preis_quelle": ""}, {"name": "Kilians Irish Pub", "stadt": "Bamberg", "strasse": "", "plz": "96047", "tel": "", "status": "offen", "lat": 49.8916044, "lon": 10.8868478, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "Alte Wache", "stadt": "Forchheim", "strasse": "Paradeplatz 17A", "plz": "91301", "tel": "", "status": "geprueft", "lat": 49.718365, "lon": 11.060863, "preis": null, "bestaetigt": null, "web": "https://www.facebook.com/derGringobeiderAltenWache/", "menu": "", "preis_quelle": ""}, {"name": "Cobbler's Irish Pub", "stadt": "Coburg", "strasse": "", "plz": "96450", "tel": "", "status": "offen", "lat": 50.2582226, "lon": 10.964561, "preis": null, "bestaetigt": null, "web": "https://www.cobblers.de/", "menu": "", "preis_quelle": ""}, {"name": "Fiddler's Green Irish Pub", "stadt": "Schweinfurt", "strasse": "Spitalstraße 32", "plz": "97421", "tel": "", "status": "plausibel", "lat": 50.0437455, "lon": 10.2324088, "preis": null, "bestaetigt": null, "web": "https://fiddlersgreenpub.de/", "menu": "https://fiddlersgreenpub.de/speisen-getraenke/", "preis_quelle": ""}, {"name": "Dubliner Irish Pub", "stadt": "Bayreuth", "strasse": "Wittelsbacherring 2", "plz": "95444", "tel": "0921/512630", "status": "plausibel", "lat": 49.9432536, "lon": 11.5698209, "preis": null, "bestaetigt": null, "web": "https://dubliner-bayreuth.de/", "menu": "", "preis_quelle": ""}, {"name": "Irish Pub Ansbach", "stadt": "Ansbach", "strasse": "Eyber Straße 15", "plz": "91522", "tel": "", "status": "geprueft", "lat": 49.3035489, "lon": 10.5820636, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}];
+const START = [{"name": "Irish Castle Pub", "stadt": "Nürnberg", "strasse": "Schlehengasse 31", "plz": "90402", "tel": "0911 224878", "status": "geprueft", "lat": 49.4488363, "lon": 11.0668663, "preis": null, "bestaetigt": null, "web": "https://www.irish-castle-pub.com/", "menu": "https://www.irish-castle-pub.com/karte", "preis_quelle": ""}, {"name": "Mulligan's Irish Pub, Bar und Grill", "stadt": "Nürnberg", "strasse": "Königstraße 71", "plz": "90402", "tel": "0911 21216450", "status": "geprueft", "lat": 49.4485898, "lon": 11.0804456, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "The Old Shillelagh", "stadt": "Nürnberg", "strasse": "Schnieglinger Straße 236", "plz": "90427", "tel": "", "status": "geprueft", "lat": 49.4676986, "lon": 11.029164, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "Kilians Irish Pub", "stadt": "Nürnberg", "strasse": "Hallplatz 21", "plz": "90402", "tel": "", "status": "geprueft", "lat": 49.4488171, "lon": 11.0782016, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "O'Sheas Irish Pub", "stadt": "Nürnberg", "strasse": "Engelhardsgasse 7", "plz": "90402", "tel": "0911-203210", "status": "plausibel", "lat": 49.4486764, "lon": 11.0696014, "preis": null, "bestaetigt": null, "web": "https://osheas.de/", "menu": "https://osheas.de/getraenke/", "preis_quelle": ""}, {"name": "Finnegan's Irish Pub", "stadt": "Nürnberg", "strasse": "Königstraße 80", "plz": "90402", "tel": "0911-203210", "status": "plausibel", "lat": 49.4476214, "lon": 11.0808408, "preis": null, "bestaetigt": null, "web": "https://finnegansirishpub.de/", "menu": "https://finnegansirishpub.de/getraenke/", "preis_quelle": ""}, {"name": "Dubliner Irish Pub & Sports Bar", "stadt": "Nürnberg", "strasse": "Königstraße 59", "plz": "90402", "tel": "", "status": "plausibel", "lat": 49.449075, "lon": 11.0799389, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "O'Toole's Schmiede", "stadt": "Nürnberg", "strasse": "Bärenschanzstraße 89", "plz": "90429", "tel": "", "status": "plausibel", "lat": 49.4525711, "lon": 11.0530154, "preis": null, "bestaetigt": null, "web": "https://www.otooles.de/", "menu": "", "preis_quelle": ""}, {"name": "Murphy's Law", "stadt": "Erlangen", "strasse": "Bismarckstraße 30", "plz": "91054", "tel": "09131 8297899", "status": "geprueft", "lat": 49.5979973, "lon": 11.0154366, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "Goldener Mond", "stadt": "Erlangen", "strasse": "Innere Brucker Straße 18", "plz": "91054", "tel": "09131 8286205", "status": "geprueft", "lat": 49.595204, "lon": 11.0031747, "preis": null, "bestaetigt": null, "web": "https://goldenermond.de/", "menu": "https://goldenermond.de/", "preis_quelle": ""}, {"name": "Granny Mac's Irish Pub", "stadt": "Erlangen", "strasse": "Hauptstraße 106", "plz": "91054", "tel": "", "status": "plausibel", "lat": 49.6024187, "lon": 11.0039965, "preis": null, "bestaetigt": null, "web": "https://www.granny-macs.de/", "menu": "", "preis_quelle": ""}, {"name": "Cheers im Pfeifndurla", "stadt": "Fürth", "strasse": "Gustavstraße 36", "plz": "90762", "tel": "0911 47895856", "status": "geprueft", "lat": 49.4792515, "lon": 10.9888143, "preis": null, "bestaetigt": null, "web": "https://www.cheers-im-pfeifndurla.de/", "menu": "https://www.cheers-im-pfeifndurla.de/pubfood", "preis_quelle": ""}, {"name": "Irish Cottage", "stadt": "Fürth", "strasse": "Waagplatz 1", "plz": "90762", "tel": "", "status": "plausibel", "lat": 49.4785926, "lon": 10.9881768, "preis": null, "bestaetigt": null, "web": "https://www.irishcottagepub.com/", "menu": "", "preis_quelle": ""}, {"name": "Kilians Irish Pub", "stadt": "Bamberg", "strasse": "", "plz": "96047", "tel": "", "status": "offen", "lat": 49.8916044, "lon": 10.8868478, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "Alte Wache", "stadt": "Forchheim", "strasse": "Paradeplatz 17A", "plz": "91301", "tel": "", "status": "geprueft", "lat": 49.718365, "lon": 11.060863, "preis": null, "bestaetigt": null, "web": "https://www.facebook.com/derGringobeiderAltenWache/", "menu": "", "preis_quelle": ""}, {"name": "Cobbler's Irish Pub", "stadt": "Coburg", "strasse": "", "plz": "96450", "tel": "", "status": "offen", "lat": 50.2582226, "lon": 10.964561, "preis": null, "bestaetigt": null, "web": "https://www.cobblers.de/", "menu": "", "preis_quelle": ""}, {"name": "Fiddler's Green Irish Pub", "stadt": "Schweinfurt", "strasse": "Spitalstraße 32", "plz": "97421", "tel": "", "status": "plausibel", "lat": 50.0437455, "lon": 10.2324088, "preis": null, "bestaetigt": null, "web": "https://fiddlersgreenpub.de/", "menu": "https://fiddlersgreenpub.de/speisen-getraenke/", "preis_quelle": ""}, {"name": "Dubliner Irish Pub", "stadt": "Bayreuth", "strasse": "Wittelsbacherring 2", "plz": "95444", "tel": "0921/512630", "status": "plausibel", "lat": 49.9432536, "lon": 11.5698209, "preis": null, "bestaetigt": null, "web": "https://dubliner-bayreuth.de/", "menu": "", "preis_quelle": ""}, {"name": "Irish Pub Ansbach", "stadt": "Ansbach", "strasse": "Eyber Straße 15", "plz": "91522", "tel": "", "status": "geprueft", "lat": 49.3035489, "lon": 10.5820636, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}];
 const KEY = "pint_v3";
 let state = JSON.parse(localStorage.getItem(KEY) || '{"overrides":{},"neu":[],"log":[],"pints":[],"preise":[]}');
 if(!state.pints) state.pints = [];
@@ -1614,6 +1648,7 @@ function buddySchliessen(){
 }
 
 async function ladeBuddy(){
+  await ladeUngelesen();
   try{
     const daten = await sbRpc("buddy_liste", {p_ich: geraet}) || [];
     buddyAnfragen = daten.filter(d => d.kind === "anfrage");
@@ -1630,11 +1665,13 @@ async function ladeBuddy(){
         </div>`).join("")
     : "";
   l.innerHTML = buddyListe.length
-    ? `<div class="uklein" style="padding:12px 2px 4px">Deine Buddies</div>` + buddyListe.map(x => {
+    ? `<div class="uklein" style="padding:12px 2px 4px">Deine Buddies · antippen zum Schreiben</div>` + buddyListe.map((x, i) => {
         const wann = x.pub ? " 🍺 " + x.pub + (x.stadt ? ", " + x.stadt : "") : " · gerade nichts";
         const dauer = x.seit ? " · seit " + Math.max(1, Math.round((Date.now() - new Date(x.seit)) / 60000)) + " Min" : "";
+        const neu = ungelesen[x.geraet] ? `<span class="bneu">${ungelesen[x.geraet]}</span>` : "";
         return `<div class="bzeile">
-          <div class="bname">${esc(x.name)}<span class="bstat">${x.pub ? "trinkt" + esc(wann) + dauer : "still"}</span></div>
+          <div class="bname" onclick="oeffneChat(${i})" style="cursor:pointer">
+            ${esc(x.name)}${neu}<span class="bstat">${x.pub ? "trinkt" + esc(wann) + dauer : "still"}</span></div>
           <button class="bknopf weg" onclick="entfernen('${x.geraet}')">Entfernen</button>
         </div>`;
       }).join("")
@@ -1725,6 +1762,75 @@ function codeUebernehmen(text){
   if(f) f.value = code;
   log("QR erkannt · " + code);
   anfrageSenden();
+}
+
+let chatMit = null, chatPoll = null, ungelesen = {};
+
+function oeffneChat(i){
+  const b = buddyListe[i];
+  if(!b) return;
+  chatMit = {geraet: b.geraet, name: b.name};
+  document.getElementById("c_name").textContent = b.name;
+  document.getElementById("c_verlauf").innerHTML = '<div class="uklein" style="padding:10px">Lade …</div>';
+  document.getElementById("chat").classList.add("offen");
+  ladeChat();
+  if(chatPoll) clearInterval(chatPoll);
+  chatPoll = setInterval(ladeChat, 8000);
+}
+function chatSchliessen(){
+  document.getElementById("chat").classList.remove("offen");
+  if(chatPoll){ clearInterval(chatPoll); chatPoll = null; }
+  chatMit = null;
+  ladeBuddy();
+}
+function zeitKurz(iso){
+  const d = new Date(iso);
+  return d.toLocaleTimeString("de-DE", {hour:"2-digit", minute:"2-digit"});
+}
+async function ladeChat(){
+  if(!chatMit) return;
+  try{
+    const daten = await sbRpc("nachrichten_mit", {p_ich: geraet, p_mit: chatMit.geraet}) || [];
+    const box = document.getElementById("c_verlauf");
+    if(!daten.length){
+      box.innerHTML = '<div class="uklein" style="padding:10px">Noch nichts geschrieben.</div>';
+    } else {
+      box.innerHTML = daten.map(m => {
+        const ich = m.von === geraet;
+        return `<div class="bubble ${ich ? "ich" : "du"}">${esc(m.text)}<small>${zeitKurz(m.erstellt)}</small></div>`;
+      }).join("");
+    }
+    // neueste unten halten, wenn man schon unten war
+    const nah = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+    if(nah || !box.dataset.init){ box.scrollTop = box.scrollHeight; box.dataset.init = "1"; }
+  }catch(e){}
+}
+async function sendeNachricht(){
+  if(!chatMit) return;
+  const feld = document.getElementById("c_text");
+  const t = (feld.value || "").trim();
+  if(!t) return;
+  feld.value = "";
+  try{
+    const id = await sbRpc("nachricht_senden", {p_ich: geraet, p_an: chatMit.geraet, p_text: t});
+    if(!id){ alert("Nachricht nicht angekommen — seid ihr noch verbunden?"); return; }
+    await ladeChat();
+  }catch(e){ alert("Senden fehlgeschlagen: " + e.message); }
+}
+async function verlaufLoeschen(){
+  if(!chatMit) return;
+  if(!confirm("Verlauf mit " + chatMit.name + " löschen? Bei dir und beim anderen.")) return;
+  try{
+    await sbRpc("nachricht_verlauf_loeschen", {p_ich: geraet, p_mit: chatMit.geraet});
+    await ladeChat();
+  }catch(e){ alert("Konnte nicht löschen."); }
+}
+async function ladeUngelesen(){
+  try{
+    const d = await sbRpc("nachrichten_ungelesen", {p_ich: geraet}) || [];
+    ungelesen = {};
+    d.forEach(x => { ungelesen[x.geraet] = Number(x.anzahl); });
+  }catch(e){ ungelesen = {}; }
 }
 
 async function anfrageSenden(){
