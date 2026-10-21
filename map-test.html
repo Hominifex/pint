@@ -717,7 +717,7 @@ function rendern(){
 }
 function filter(f, el){
   aktiv = f;
-  document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("an", c===el));
+  document.querySelectorAll(".chip[data-f]").forEach(c=>c.classList.toggle("an", c===el));
   rendern();
 }
 function umschalten(){ document.getElementById("sheet").classList.toggle("zu"); }

@@ -627,6 +627,14 @@ function zeichneKreis(){
   }
 }
 
+function radius(km, el){
+  umkreis = km;
+  document.querySelectorAll(".chip[data-r]").forEach(c => c.classList.toggle("an", c === el));
+  zeichneKreis();
+  if(userPos && km > 0) karte.setView(userPos, km <= 1 ? 16 : km <= 5 ? 14 : km <= 10 ? 13 : 12, {animate:true});
+  rendern();
+}
+
 function initKarte(){
   karte = L.map('karte',{zoomControl:false, attributionControl:true}).setView([49.53,11.03],11);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,
@@ -682,7 +690,7 @@ function rendern(){
 }
 function filter(f, el){
   aktiv = f;
-  document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("an", c===el));
+  document.querySelectorAll(".chip[data-f]").forEach(c=>c.classList.toggle("an", c===el));
   rendern();
 }
 function umschalten(){ document.getElementById("sheet").classList.toggle("zu"); }
