@@ -478,7 +478,9 @@
       <button class="x" onclick="angebote()">×</button>
     </div>
     <div class="uliste" id="aliste"></div>
-    <div class="uklein" style="padding:2px 4px 0">Quelle: Prospekt-Sammler (kaufDA, Marktguru). Preise ohne Pfand, Angaben ohne Gewähr — im Markt prüfen.</div>
+    <a class="mzeile" href="https://www.marktguru.de/suche?q=guinness" target="_blank" rel="noopener"
+       style="text-decoration:none;margin-top:8px">🔎 Alle Guinness-Angebote durchsuchen <span>›</span></a>
+    <div class="uklein" style="padding:8px 4px 0">Quelle: Prospekt-Sammler (kaufDA, Marktguru). Preise ohne Pfand, Angaben ohne Gewähr — im Markt prüfen.</div>
   </div>
 </div>
 
@@ -850,7 +852,7 @@ function menue(){
     ? state.pints.slice(0,8).map(p => `<div class="pz"><b>${esc(p.name)}</b><span>${new Date(p.zeit).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</span></div>`).join("")
     : '<div class="pz" style="border:0">Noch kein Pint eingetragen. Öffne einen Pub und tippe auf „Pint hier getrunken".</div>';
 }
-const ANGEBOTE_FALLBACK = [{"markt": "Penny", "produkt": "Guinness Draught", "menge": "0,44-l-Dose", "preis": 1.11, "uvp": 1.64, "gueltig_bis": "2026-10-24", "plz": "91352", "url": "https://www.penny.de/angebote", "quelle": "kaufDA Prospekt · Link zur Kette", "gefunden_am": "2026-10-21"}, {"markt": "Netto Marken-Discount", "produkt": "Guinness Irish Draught", "menge": "Packung", "preis": 4.99, "uvp": 6.49, "gueltig_bis": "2026-10-24", "plz": "91352", "url": "https://www.netto-online.de/angebote", "quelle": "kaufDA Prospekt · Link zur Kette", "gefunden_am": "2026-10-21"}];
+const ANGEBOTE_FALLBACK = [{"markt": "Penny", "produkt": "Guinness Draught", "menge": "0,44-l-Dose", "preis": 1.11, "uvp": 1.64, "gueltig_bis": "2026-10-24", "plz": "91352", "url": "https://www.penny.de/suche?searchTerm=guinness", "quelle": "kaufDA Prospekt · Link zur Kette", "gefunden_am": "2026-10-21"}, {"markt": "Netto Marken-Discount", "produkt": "Guinness Irish Draught", "menge": "Packung", "preis": 4.99, "uvp": 6.49, "gueltig_bis": "2026-10-24", "plz": "91352", "url": "https://www.netto-online.de/suche?q=guinness", "quelle": "kaufDA Prospekt · Link zur Kette", "gefunden_am": "2026-10-21"}];
 let angeboteDaten = ANGEBOTE_FALLBACK;
 
 function angebote(){
