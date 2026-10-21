@@ -562,6 +562,9 @@
       Special, ein knappes „Gibt's hier" — drei Tipper, und die Karte wird besser.</p>
       <p>Keine Werbeplattform, kein Reservierungssystem, keine Anleitung zum Selberzapfen.
       Nur die eine Frage, kalt beantwortet.</p>
+      <p><b>Meldungen.</b> Wenn du einen Preis, einen neuen Pub oder ein Special meldest, geht das
+      anonym an eine Datenbank (zufällige Gerätekennung, kein Konto, keine E-Mail) und wird vor der
+      Veröffentlichung geprüft.</p>
       <p class="uklein">Ein Projekt von Nick F. · Prototyp · 19 Pubs in Franken · Preise noch
       lückenhaft · Daten lokal auf dem Gerät · Karte: OpenStreetMap · Feedback willkommen</p>
     </div>
@@ -1087,7 +1090,9 @@ function specialMelden(){
   if(!t || !t.trim()) return;
   if(!state.specials) state.specials = {};
   state.specials[l.name + "|" + l.stadt] = {text: t.trim().slice(0,120), datum: Date.now()};
-  speichern(); oeffne(l);
+  speichern();
+  melde("special", l, {p_notiz: t.trim().slice(0,120)});
+  oeffne(l);
 }
 function kontaktSchliessen(){ document.getElementById("kontakt").classList.remove("offen"); }
 function kontakt(){
@@ -1313,9 +1318,31 @@ function statistik(){
     abz.map(([n,an]) => `<span class="abz ${an?"":"aus"}">${an?"✓ ":""}${n}</span>`).join("");
 }
 function log(t){ state.log.unshift({text:t,zeit:new Date().toISOString()}); speichern(); }
+const SUPA_URL = "https://tizogplmhxskrwtxauny.supabase.co";
+const SUPA_ANON = "sb_publishable_bzgiirvqpBUefSG_9oJvmQ_n8wLuelc";
+let geraet = localStorage.getItem("pint_geraet");
+if(!geraet){ geraet = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem("pint_geraet", geraet); }
+
+function melde(art, l, extra){
+  if(!SUPA_URL || !SUPA_ANON) return;
+  const koerper = Object.assign({
+    p_art: art,
+    p_pub: (l && l.name) || "",
+    p_stadt: (l && l.stadt) || null,
+    p_lat: (l && l.lat) || null,
+    p_lon: (l && l.lon) || null,
+    p_geraet: geraet
+  }, extra || {});
+  fetch(SUPA_URL + "/rest/v1/rpc/melden", {
+    method: "POST",
+    headers: {"Content-Type": "application/json", "apikey": SUPA_ANON, "Authorization": "Bearer " + SUPA_ANON},
+    body: JSON.stringify(koerper)
+  }).then(r => { if(r.ok) log("Meldung gesendet · wird geprüft"); }).catch(() => {});
+}
 function dBest(){
   if(!aktuell) return;
   setz(aktuell,"bestaetigt",new Date().toISOString()); setz(aktuell,"status","geprueft");
+  melde("bestand", aktuell);
   log(`<b>${esc(aktuell.name)}</b> bestätigt`); schliessen();
 }
 function dPreis(){
@@ -1326,6 +1353,7 @@ function dPreis(){
     setz(aktuell,"preis",p);
     state.preise.unshift({name: aktuell.name, stadt: aktuell.stadt, preis: p, zeit: new Date().toISOString()});
     speichern();
+    melde("preis", aktuell, {p_preis: p});
     log(`Preis <b>${p.toFixed(2)} €</b> · ${esc(aktuell.name)}`);
     renderAlles();
   }
