@@ -21,7 +21,7 @@
     -webkit-font-smoothing:antialiased;
   }
   #karte{position:fixed; inset:0; background:#0f0f11; touch-action:none}
-  #sheet, #kopf, #detail, #menu, #stats, #ueber, #angebote, #umgebung{touch-action:manipulation}
+  #sheet, #kopf, #detail, #menu, #stats, #ueber, #kontakt, #angebote, #umgebung{touch-action:manipulation}
   .maplibregl-ctrl-attrib{background:rgba(10,10,11,.75)!important; color:#6f6a63!important; font-size:9px!important}
   .maplibregl-ctrl-attrib a{color:#8d877e!important}
   .maplibregl-ctrl-group{background:#121214!important; border:1px solid #26262b!important}
@@ -110,16 +110,16 @@
   .angebot .betrag s{font-size:11px;color:var(--muted)}
   .angebot a{color:inherit;text-decoration:none}
   .uklein{font-size:11px;color:var(--muted);line-height:1.5}
-  #ueber{
+  #ueber, #kontakt{
     position:fixed; inset:0; z-index:1165; display:none; background:rgba(6,6,7,.78);
     backdrop-filter:blur(6px); padding:16px; overflow:auto;
   }
-  #ueber.offen{display:block}
-  #ueber .ukarte{max-width:430px;margin:5vh auto 0;background:var(--sheet);
+  #ueber.offen, #kontakt.offen{display:block}
+  #ueber .ukarte, #kontakt .ukarte{max-width:430px;margin:5vh auto 0;background:var(--sheet);
     border:1px solid var(--line);border-radius:20px;padding:20px}
-  #ueber .utext p{margin:0 0 12px;font-size:13px;line-height:1.6;color:var(--ink)}
-  #ueber .utext b{color:var(--gold);font-weight:650}
-  #ueber .uklein{font-size:11px;color:var(--muted)}
+  #ueber .utext p, #kontakt .utext p{margin:0 0 12px;font-size:13px;line-height:1.6;color:var(--ink)}
+  #ueber .utext b, #kontakt .utext b{color:var(--gold);font-weight:650}
+  #ueber .uklein, #kontakt .uklein{font-size:11px;color:var(--muted)}
   #umgebung{
     position:fixed; inset:0; z-index:1160; display:none; background:rgba(6,6,7,.72);
     backdrop-filter:blur(6px); padding:16px; overflow:auto;
@@ -315,16 +315,16 @@
   .angebot .betrag s{font-size:11px;color:var(--muted)}
   .angebot a{color:inherit;text-decoration:none}
   .uklein{font-size:11px;color:var(--muted);line-height:1.5}
-  #ueber{
+  #ueber, #kontakt{
     position:fixed; inset:0; z-index:1165; display:none; background:rgba(6,6,7,.78);
     backdrop-filter:blur(6px); padding:16px; overflow:auto;
   }
-  #ueber.offen{display:block}
-  #ueber .ukarte{max-width:430px;margin:5vh auto 0;background:var(--sheet);
+  #ueber.offen, #kontakt.offen{display:block}
+  #ueber .ukarte, #kontakt .ukarte{max-width:430px;margin:5vh auto 0;background:var(--sheet);
     border:1px solid var(--line);border-radius:20px;padding:20px}
-  #ueber .utext p{margin:0 0 12px;font-size:13px;line-height:1.6;color:var(--ink)}
-  #ueber .utext b{color:var(--gold);font-weight:650}
-  #ueber .uklein{font-size:11px;color:var(--muted)}
+  #ueber .utext p, #kontakt .utext p{margin:0 0 12px;font-size:13px;line-height:1.6;color:var(--ink)}
+  #ueber .utext b, #kontakt .utext b{color:var(--gold);font-weight:650}
+  #ueber .uklein, #kontakt .uklein{font-size:11px;color:var(--muted)}
   #umgebung{
     position:fixed; inset:0; z-index:1160; display:none; background:rgba(6,6,7,.72);
     backdrop-filter:blur(6px); padding:16px; overflow:auto;
@@ -515,6 +515,30 @@
   </div>
 </div>
 
+<div id="kontakt">
+  <div class="ukarte">
+    <div class="ukopf">
+      <div>
+        <h3>Kontakt</h3>
+        <div class="uunter">Fehler, fehlender Pub, falscher Preis?</div>
+      </div>
+      <button class="x" onclick="kontaktSchliessen()">×</button>
+    </div>
+    <div class="utext">
+      <p>Diese App lebt davon, dass jemand Bescheid sagt. Ein Pub fehlt, ein Preis stimmt nicht,
+      eine Seite hängt — schreib es kurz hin, dann wird es besser.</p>
+      <p><b>Hilfreich ist:</b> Name des Pubs, Ort, was du gesehen hast (Preis, Zapfhahn,
+      Speisekarte), Datum.</p>
+    </div>
+    <a class="mzeile" href="mailto:nythral@gmx.de?subject=Where%20is%20my%20Pint"
+       style="text-decoration:none">✉️ E-Mail schreiben <span>›</span></a>
+    <a class="mzeile" href="https://github.com/Hominifex/pint/issues" target="_blank"
+       rel="noopener" style="text-decoration:none">🐞 Fehler auf GitHub melden <span>›</span></a>
+    <div class="uklein" style="padding:10px 4px 0">Jede Meldung wird gelesen. Antwort dauert
+    manchmal — aber sie kommt.</div>
+  </div>
+</div>
+
 <div id="umgebung">
   <div class="ukarte">
     <div class="ukopf">
@@ -550,6 +574,7 @@
     <button class="mzeile" onclick="nurBesuchte()">🗺️ Nur besuchte Pubs <span>›</span></button>
     <button class="mzeile" onclick="teilen()">📸 Als Bild teilen <span>›</span></button>
     <div class="mliste" id="m_liste"></div>
+    <button class="mzeile" onclick="kontakt()">✉️ Kontakt &amp; Feedback <span>›</span></button>
     <button class="mzeile" onclick="ueber()">ℹ️ Über die App <span>›</span></button>
     <button class="mzeile" onclick="zuruecksetzen()">🗑️ Meine Daten löschen <span>›</span></button>
   </div>
@@ -898,6 +923,11 @@ function ueberSchliessen(){ document.getElementById("ueber").classList.remove("o
 function ueber(){
   menue();
   document.getElementById("ueber").classList.add("offen");
+}
+function kontaktSchliessen(){ document.getElementById("kontakt").classList.remove("offen"); }
+function kontakt(){
+  menue();
+  document.getElementById("kontakt").classList.add("offen");
 }
 function ueberAlt(){
   alert("Where is my Pint? · Prototyp · 19 Pubs in Franken · Karte: OpenStreetMap · Daten teils ungeprüft, Preise noch nicht gemeldet · Alles läuft lokal auf dem Gerät, keine Konten, kein Server, keine Werbung.");
