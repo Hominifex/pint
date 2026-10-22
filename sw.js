@@ -1,4 +1,4 @@
-const CACHE = "pint-20261022-122117";
+const CACHE = "pint-20261022-122256";
 const ASSETS = ["./", "./index.html", "./manifest.json", "./logo-quadrat.png"];
 
 self.addEventListener("install", e => {
@@ -34,6 +34,22 @@ self.addEventListener("fetch", e => {
   // Kartenkacheln: Netz zuerst, offline aus dem Cache
   if (url.hostname.includes("tile.openstreetmap.org")) {
     e.respondWith(fetch(req).catch(() => caches.match(req)));
+    return;
+  }
+
+  // Daten (JSON) immer aus dem Netz, offline aus dem Cache
+  if (url.pathname.endsWith(".json")) {
+    e.respondWith(
+      fetch(req, { cache: "no-store" })
+        .then(r => { const k = r.clone(); caches.open(CACHE).then(c => c.put(req, k)); return r; })
+        .catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // Fremde Adressen (Supabase, APIs): niemals zwischenspeichern
+  if (url.origin !== self.location.origin) {
+    e.respondWith(fetch(req));
     return;
   }
 
