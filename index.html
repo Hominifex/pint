@@ -1045,14 +1045,14 @@ function oeffnungsStatus(l){
   if(heute){
     if(heute.nacht){
       if(jetztMin >= heute.s || jetztMin < heute.e) return {art:"offen", bis:zTxt(heute.e)};
-      return {art:"zu", oeffnet:"heute " + zTxt(heute.s)};
+      return {art:"zu", oeffnet:"heute ab " + zTxt(heute.s)};
     }
     if(jetztMin >= heute.s && jetztMin < heute.e) return {art:"offen", bis:zTxt(heute.e)};
-    if(jetztMin < heute.s) return {art:"zu", oeffnet:"heute " + zTxt(heute.s)};
+    if(jetztMin < heute.s) return {art:"zu", oeffnet:"heute ab " + zTxt(heute.s)};
   }
   for(let k=1; k<=7; k++){
     const t = zeitFenster(z[TAGEKURZ[(i+k)%7]]);
-    if(t) return {art:"zu", oeffnet:(k === 1 ? "morgen " : TAGNAME[(i+k)%7] + " ") + zTxt(t.s)};
+    if(t) return {art:"zu", oeffnet:(k === 1 ? "morgen ab " : TAGNAME[(i+k)%7] + " ab ") + zTxt(t.s)};
   }
   return {art:"zu", oeffnet:null};
 }
