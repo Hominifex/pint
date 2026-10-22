@@ -22,5 +22,25 @@
   "url": "https://www.prospektguru.de/angebote/guinness",
   "quelle": "kaufDA Prospekt · Link zur Kette",
   "gefunden_am": "2026-10-21"
+ },
+ {
+  "markt": "Lidl",
+  "produkt": "Guinness Draught",
+  "menge": "0,44-l-Dose",
+  "preis": 1.48,
+  "uvp": null,
+  "gueltig_bis": "2026-10-29",
+  "plz": "91352",
+  "url": "https://www.prospektguru.de/angebote/guinness"
+ },
+ {
+  "markt": "Aldi Nord",
+  "produkt": "Guinness Draught",
+  "menge": "Mehrfachpackung",
+  "preis": 6.49,
+  "uvp": null,
+  "gueltig_bis": "2026-10-29",
+  "plz": "91352",
+  "url": "https://www.prospektguru.de/angebote/guinness"
  }
 ]
