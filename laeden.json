@@ -12,7 +12,29 @@
   "bestaetigt": null,
   "web": "https://www.irish-castle-pub.com/",
   "menu": "https://www.irish-castle-pub.com/karte",
-  "preis_quelle": ""
+  "preis_quelle": "",
+  "zeiten": {
+   "do": [
+    "18:00",
+    "01:00"
+   ],
+   "fr": [
+    "18:00",
+    "02:00"
+   ],
+   "sa": [
+    "18:00",
+    "02:00"
+   ],
+   "so": null,
+   "mo": null,
+   "di": null,
+   "mi": [
+    "18:00",
+    "01:00"
+   ]
+  },
+  "zeitenQuelle": "Google"
  },
  {
   "name": "Mulligan's Irish Pub, Bar und Grill",
@@ -27,7 +49,38 @@
   "bestaetigt": null,
   "web": "",
   "menu": "",
-  "preis_quelle": ""
+  "preis_quelle": "",
+  "zeiten": {
+   "do": [
+    "11:00",
+    "03:00"
+   ],
+   "fr": [
+    "11:00",
+    "05:00"
+   ],
+   "sa": [
+    "11:00",
+    "05:00"
+   ],
+   "so": [
+    "11:00",
+    "03:00"
+   ],
+   "mo": [
+    "11:00",
+    "03:00"
+   ],
+   "di": [
+    "11:00",
+    "03:00"
+   ],
+   "mi": [
+    "11:00",
+    "03:00"
+   ]
+  },
+  "zeitenQuelle": "Google"
  },
  {
   "name": "The Old Shillelagh",
@@ -42,7 +95,35 @@
   "bestaetigt": null,
   "web": "",
   "menu": "",
-  "preis_quelle": ""
+  "preis_quelle": "",
+  "zeiten": {
+   "do": [
+    "18:00",
+    "23:00"
+   ],
+   "fr": [
+    "18:00",
+    "23:00"
+   ],
+   "sa": [
+    "18:00",
+    "23:00"
+   ],
+   "so": null,
+   "mo": [
+    "18:00",
+    "23:00"
+   ],
+   "di": [
+    "18:00",
+    "23:00"
+   ],
+   "mi": [
+    "18:00",
+    "23:00"
+   ]
+  },
+  "zeitenQuelle": "Google"
  },
  {
   "name": "Kilians Irish Pub",
@@ -57,7 +138,38 @@
   "bestaetigt": null,
   "web": "",
   "menu": "",
-  "preis_quelle": ""
+  "preis_quelle": "",
+  "zeiten": {
+   "do": [
+    "14:00",
+    "05:00"
+   ],
+   "fr": [
+    "12:00",
+    "05:00"
+   ],
+   "sa": [
+    "12:00",
+    "05:00"
+   ],
+   "so": [
+    "12:00",
+    "05:00"
+   ],
+   "mo": [
+    "14:00",
+    "05:00"
+   ],
+   "di": [
+    "14:00",
+    "05:00"
+   ],
+   "mi": [
+    "14:00",
+    "05:00"
+   ]
+  },
+  "zeitenQuelle": "Google"
  },
  {
   "name": "O'Sheas Irish Pub",
@@ -72,7 +184,38 @@
   "bestaetigt": null,
   "web": "https://osheas.de/",
   "menu": "https://osheas.de/getraenke/",
-  "preis_quelle": ""
+  "preis_quelle": "",
+  "zeiten": {
+   "do": [
+    "16:00",
+    "01:00"
+   ],
+   "fr": [
+    "14:00",
+    "02:00"
+   ],
+   "sa": [
+    "14:00",
+    "02:00"
+   ],
+   "so": [
+    "14:00",
+    "01:00"
+   ],
+   "mo": [
+    "16:00",
+    "01:00"
+   ],
+   "di": [
+    "16:00",
+    "01:00"
+   ],
+   "mi": [
+    "16:00",
+    "01:00"
+   ]
+  },
+  "zeitenQuelle": "Google"
  },
  {
   "name": "Finnegan's Irish Pub",
@@ -117,7 +260,32 @@
   "bestaetigt": null,
   "web": "https://www.otooles.de/",
   "menu": "",
-  "preis_quelle": ""
+  "preis_quelle": "",
+  "zeiten": {
+   "do": [
+    "17:00",
+    "00:00"
+   ],
+   "fr": [
+    "17:00",
+    "01:00"
+   ],
+   "sa": [
+    "17:00",
+    "01:00"
+   ],
+   "so": [
+    "17:00",
+    "23:00"
+   ],
+   "mo": null,
+   "di": null,
+   "mi": [
+    "17:00",
+    "00:00"
+   ]
+  },
+  "zeitenQuelle": "Google"
  },
  {
   "name": "Murphy's Law",
@@ -132,7 +300,35 @@
   "bestaetigt": null,
   "web": "",
   "menu": "",
-  "preis_quelle": ""
+  "preis_quelle": "",
+  "zeiten": {
+   "do": [
+    "18:00",
+    "01:00"
+   ],
+   "fr": [
+    "18:00",
+    "01:00"
+   ],
+   "sa": [
+    "18:00",
+    "01:00"
+   ],
+   "so": null,
+   "mo": [
+    "18:00",
+    "01:00"
+   ],
+   "di": [
+    "18:00",
+    "01:00"
+   ],
+   "mi": [
+    "18:00",
+    "01:00"
+   ]
+  },
+  "zeitenQuelle": "Google"
  },
  {
   "name": "Goldener Mond",
@@ -147,7 +343,32 @@
   "bestaetigt": null,
   "web": "https://goldenermond.de/",
   "menu": "https://goldenermond.de/",
-  "preis_quelle": ""
+  "preis_quelle": "",
+  "zeiten": {
+   "do": [
+    "18:00",
+    "02:00"
+   ],
+   "fr": [
+    "18:00",
+    "04:00"
+   ],
+   "sa": [
+    "18:00",
+    "04:00"
+   ],
+   "so": null,
+   "mo": null,
+   "di": [
+    "18:00",
+    "02:00"
+   ],
+   "mi": [
+    "18:00",
+    "02:00"
+   ]
+  },
+  "zeitenQuelle": "Google"
  },
  {
   "name": "Granny Mac's Irish Pub",
@@ -162,7 +383,35 @@
   "bestaetigt": null,
   "web": "https://www.granny-macs.de/",
   "menu": "",
-  "preis_quelle": ""
+  "preis_quelle": "",
+  "zeiten": {
+   "do": [
+    "18:00",
+    "01:00"
+   ],
+   "fr": [
+    "18:00",
+    "02:00"
+   ],
+   "sa": [
+    "18:00",
+    "02:00"
+   ],
+   "so": null,
+   "mo": [
+    "18:00",
+    "23:00"
+   ],
+   "di": [
+    "18:00",
+    "01:00"
+   ],
+   "mi": [
+    "18:00",
+    "01:00"
+   ]
+  },
+  "zeitenQuelle": "Google"
  },
  {
   "name": "Cheers im Pfeifndurla",
@@ -177,7 +426,38 @@
   "bestaetigt": null,
   "web": "https://www.cheers-im-pfeifndurla.de/",
   "menu": "https://www.cheers-im-pfeifndurla.de/pubfood",
-  "preis_quelle": ""
+  "preis_quelle": "",
+  "zeiten": {
+   "do": [
+    "16:00",
+    "00:00"
+   ],
+   "fr": [
+    "16:00",
+    "02:00"
+   ],
+   "sa": [
+    "16:00",
+    "02:00"
+   ],
+   "so": [
+    "16:00",
+    "00:00"
+   ],
+   "mo": [
+    "16:00",
+    "00:00"
+   ],
+   "di": [
+    "16:00",
+    "00:00"
+   ],
+   "mi": [
+    "16:00",
+    "00:00"
+   ]
+  },
+  "zeitenQuelle": "Google"
  },
  {
   "name": "Irish Cottage",
@@ -192,7 +472,38 @@
   "bestaetigt": null,
   "web": "https://www.irishcottagepub.com/",
   "menu": "",
-  "preis_quelle": ""
+  "preis_quelle": "",
+  "zeiten": {
+   "do": [
+    "17:00",
+    "02:00"
+   ],
+   "fr": [
+    "17:00",
+    "02:00"
+   ],
+   "sa": [
+    "17:00",
+    "02:00"
+   ],
+   "so": [
+    "17:00",
+    "00:00"
+   ],
+   "mo": [
+    "17:00",
+    "02:00"
+   ],
+   "di": [
+    "17:00",
+    "02:00"
+   ],
+   "mi": [
+    "17:00",
+    "02:00"
+   ]
+  },
+  "zeitenQuelle": "Google"
  },
  {
   "name": "Kilians Irish Pub",
@@ -207,7 +518,38 @@
   "bestaetigt": null,
   "web": "",
   "menu": "",
-  "preis_quelle": ""
+  "preis_quelle": "",
+  "zeiten": {
+   "do": [
+    "15:00",
+    "02:00"
+   ],
+   "fr": [
+    "12:00",
+    "04:00"
+   ],
+   "sa": [
+    "12:00",
+    "04:00"
+   ],
+   "so": [
+    "12:00",
+    "02:00"
+   ],
+   "mo": [
+    "15:00",
+    "02:00"
+   ],
+   "di": [
+    "15:00",
+    "02:00"
+   ],
+   "mi": [
+    "15:00",
+    "02:00"
+   ]
+  },
+  "zeitenQuelle": "Google"
  },
  {
   "name": "Alte Wache",
@@ -222,7 +564,35 @@
   "bestaetigt": null,
   "web": "https://www.facebook.com/derGringobeiderAltenWache/",
   "menu": "",
-  "preis_quelle": ""
+  "preis_quelle": "",
+  "zeiten": {
+   "do": [
+    "11:00",
+    "22:00"
+   ],
+   "fr": [
+    "11:00",
+    "23:00"
+   ],
+   "sa": [
+    "10:00",
+    "23:00"
+   ],
+   "so": [
+    "10:00",
+    "21:00"
+   ],
+   "mo": [
+    "11:00",
+    "22:00"
+   ],
+   "di": null,
+   "mi": [
+    "11:00",
+    "22:00"
+   ]
+  },
+  "zeitenQuelle": "Google"
  },
  {
   "name": "Cobbler's Irish Pub",
@@ -252,7 +622,38 @@
   "bestaetigt": null,
   "web": "https://fiddlersgreenpub.de/",
   "menu": "https://fiddlersgreenpub.de/speisen-getraenke/",
-  "preis_quelle": ""
+  "preis_quelle": "",
+  "zeiten": {
+   "do": [
+    "20:00",
+    "01:00"
+   ],
+   "fr": [
+    "20:00",
+    "02:00"
+   ],
+   "sa": [
+    "20:00",
+    "02:00"
+   ],
+   "so": [
+    "20:00",
+    "01:00"
+   ],
+   "mo": [
+    "20:00",
+    "01:00"
+   ],
+   "di": [
+    "20:00",
+    "01:00"
+   ],
+   "mi": [
+    "20:00",
+    "01:00"
+   ]
+  },
+  "zeitenQuelle": "Google"
  },
  {
   "name": "Dubliner Irish Pub",
@@ -267,7 +668,35 @@
   "bestaetigt": null,
   "web": "https://dubliner-bayreuth.de/",
   "menu": "",
-  "preis_quelle": ""
+  "preis_quelle": "",
+  "zeiten": {
+   "do": [
+    "19:00",
+    "01:00"
+   ],
+   "fr": [
+    "18:00",
+    "03:00"
+   ],
+   "sa": [
+    "18:00",
+    "03:00"
+   ],
+   "so": null,
+   "mo": [
+    "19:00",
+    "01:00"
+   ],
+   "di": [
+    "19:00",
+    "01:00"
+   ],
+   "mi": [
+    "19:00",
+    "01:00"
+   ]
+  },
+  "zeitenQuelle": "Google"
  },
  {
   "name": "Irish Pub Ansbach",
@@ -282,6 +711,31 @@
   "bestaetigt": null,
   "web": "",
   "menu": "",
-  "preis_quelle": ""
+  "preis_quelle": "",
+  "zeiten": {
+   "do": [
+    "19:30",
+    "00:00"
+   ],
+   "fr": [
+    "19:30",
+    "02:00"
+   ],
+   "sa": [
+    "19:30",
+    "02:00"
+   ],
+   "so": null,
+   "mo": null,
+   "di": [
+    "19:30",
+    "00:00"
+   ],
+   "mi": [
+    "19:30",
+    "00:00"
+   ]
+  },
+  "zeitenQuelle": "Google"
  }
 ]

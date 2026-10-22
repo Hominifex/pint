@@ -204,6 +204,23 @@
     background:#1b1b1f center/cover no-repeat;display:flex;align-items:center;justify-content:center;
     font-size:18px;color:var(--gold);cursor:pointer}
   .mprofiltext{min-width:0}
+  .zst{font-size:11px;font-weight:600}
+  .zst.auf{color:#66c98d}
+  .zst.zu{color:#e2807a}
+  .zeiten{margin:2px 0 10px}
+  .zeiten .badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:650;
+    padding:4px 10px;border-radius:999px;letter-spacing:.01em}
+  .zeiten .badge.auf{background:rgba(63,169,106,.15);color:#66c98d;border:1px solid rgba(63,169,106,.4)}
+  .zeiten .badge.zu{background:rgba(192,96,90,.15);color:#e2807a;border:1px solid rgba(192,96,90,.4)}
+  .zeiten .badge.unbekannt{background:#1c1c20;color:#8d877e;border:1px solid var(--line)}
+  .zeiten details{margin-top:7px}
+  .zeiten summary{color:var(--gold);font-size:11.5px;cursor:pointer;list-style:none}
+  .zeiten summary::-webkit-details-marker{display:none}
+  .zeiten summary::before{content:"▾ ";font-size:9px}
+  .zeiten table{border-collapse:collapse;margin-top:6px;font-size:12px}
+  .zeiten td{padding:1.5px 10px 1.5px 0;color:#b3ada3}
+  .zeiten tr.heute td{color:#fff;font-weight:650}
+  .zeiten tr.ruhe td{color:#6d6862}
   .pe{display:block;font-size:10.5px;color:var(--muted);font-weight:400;margin-top:2px}
   .tzeile{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid var(--line)}
   .tzeile:last-of-type{border-bottom:0}
@@ -550,6 +567,7 @@
     <button class="x" onclick="schliessen()">×</button>
   </div>
   <div class="adr" id="d_adr"></div>
+  <div class="zeiten" id="d_zeiten"></div>
   <div class="preiszeile"><b id="d_preis"></b><span id="d_stand"></span></div>
   <div class="links" id="d_links"></div>
   <div id="d_special"></div>
@@ -801,7 +819,7 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const START = [{"name": "Irish Castle Pub", "stadt": "Nürnberg", "strasse": "Schlehengasse 31", "plz": "90402", "tel": "0911 224878", "status": "geprueft", "lat": 49.4488363, "lon": 11.0668663, "preis": null, "bestaetigt": null, "web": "https://www.irish-castle-pub.com/", "menu": "https://www.irish-castle-pub.com/karte", "preis_quelle": ""}, {"name": "Mulligan's Irish Pub, Bar und Grill", "stadt": "Nürnberg", "strasse": "Königstraße 71", "plz": "90402", "tel": "0911 21216450", "status": "geprueft", "lat": 49.4485898, "lon": 11.0804456, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "The Old Shillelagh", "stadt": "Nürnberg", "strasse": "Schnieglinger Straße 236", "plz": "90427", "tel": "", "status": "geprueft", "lat": 49.4676986, "lon": 11.029164, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "Kilians Irish Pub", "stadt": "Nürnberg", "strasse": "Hallplatz 21", "plz": "90402", "tel": "", "status": "geprueft", "lat": 49.4488171, "lon": 11.0782016, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "O'Sheas Irish Pub", "stadt": "Nürnberg", "strasse": "Engelhardsgasse 7", "plz": "90402", "tel": "0911-203210", "status": "plausibel", "lat": 49.4486764, "lon": 11.0696014, "preis": null, "bestaetigt": null, "web": "https://osheas.de/", "menu": "https://osheas.de/getraenke/", "preis_quelle": ""}, {"name": "Finnegan's Irish Pub", "stadt": "Nürnberg", "strasse": "Königstraße 80", "plz": "90402", "tel": "0911-203210", "status": "plausibel", "lat": 49.4476214, "lon": 11.0808408, "preis": null, "bestaetigt": null, "web": "https://finnegansirishpub.de/", "menu": "https://finnegansirishpub.de/getraenke/", "preis_quelle": ""}, {"name": "Dubliner Irish Pub & Sports Bar", "stadt": "Nürnberg", "strasse": "Königstraße 59", "plz": "90402", "tel": "", "status": "plausibel", "lat": 49.449075, "lon": 11.0799389, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "O'Toole's Schmiede", "stadt": "Nürnberg", "strasse": "Bärenschanzstraße 89", "plz": "90429", "tel": "", "status": "plausibel", "lat": 49.4525711, "lon": 11.0530154, "preis": null, "bestaetigt": null, "web": "https://www.otooles.de/", "menu": "", "preis_quelle": ""}, {"name": "Murphy's Law", "stadt": "Erlangen", "strasse": "Bismarckstraße 30", "plz": "91054", "tel": "09131 8297899", "status": "geprueft", "lat": 49.5979973, "lon": 11.0154366, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "Goldener Mond", "stadt": "Erlangen", "strasse": "Innere Brucker Straße 18", "plz": "91054", "tel": "09131 8286205", "status": "geprueft", "lat": 49.595204, "lon": 11.0031747, "preis": null, "bestaetigt": null, "web": "https://goldenermond.de/", "menu": "https://goldenermond.de/", "preis_quelle": ""}, {"name": "Granny Mac's Irish Pub", "stadt": "Erlangen", "strasse": "Hauptstraße 106", "plz": "91054", "tel": "", "status": "plausibel", "lat": 49.6024187, "lon": 11.0039965, "preis": null, "bestaetigt": null, "web": "https://www.granny-macs.de/", "menu": "", "preis_quelle": ""}, {"name": "Cheers im Pfeifndurla", "stadt": "Fürth", "strasse": "Gustavstraße 36", "plz": "90762", "tel": "0911 47895856", "status": "geprueft", "lat": 49.4792515, "lon": 10.9888143, "preis": null, "bestaetigt": null, "web": "https://www.cheers-im-pfeifndurla.de/", "menu": "https://www.cheers-im-pfeifndurla.de/pubfood", "preis_quelle": ""}, {"name": "Irish Cottage", "stadt": "Fürth", "strasse": "Waagplatz 1", "plz": "90762", "tel": "", "status": "plausibel", "lat": 49.4785926, "lon": 10.9881768, "preis": null, "bestaetigt": null, "web": "https://www.irishcottagepub.com/", "menu": "", "preis_quelle": ""}, {"name": "Kilians Irish Pub", "stadt": "Bamberg", "strasse": "", "plz": "96047", "tel": "", "status": "offen", "lat": 49.8916044, "lon": 10.8868478, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "Alte Wache", "stadt": "Forchheim", "strasse": "Paradeplatz 17A", "plz": "91301", "tel": "", "status": "geprueft", "lat": 49.718365, "lon": 11.060863, "preis": null, "bestaetigt": null, "web": "https://www.facebook.com/derGringobeiderAltenWache/", "menu": "", "preis_quelle": ""}, {"name": "Cobbler's Irish Pub", "stadt": "Coburg", "strasse": "", "plz": "96450", "tel": "", "status": "offen", "lat": 50.2582226, "lon": 10.964561, "preis": null, "bestaetigt": null, "web": "https://www.cobblers.de/", "menu": "", "preis_quelle": ""}, {"name": "Fiddler's Green Irish Pub", "stadt": "Schweinfurt", "strasse": "Spitalstraße 32", "plz": "97421", "tel": "", "status": "plausibel", "lat": 50.0437455, "lon": 10.2324088, "preis": null, "bestaetigt": null, "web": "https://fiddlersgreenpub.de/", "menu": "https://fiddlersgreenpub.de/speisen-getraenke/", "preis_quelle": ""}, {"name": "Dubliner Irish Pub", "stadt": "Bayreuth", "strasse": "Wittelsbacherring 2", "plz": "95444", "tel": "0921/512630", "status": "plausibel", "lat": 49.9432536, "lon": 11.5698209, "preis": null, "bestaetigt": null, "web": "https://dubliner-bayreuth.de/", "menu": "", "preis_quelle": ""}, {"name": "Irish Pub Ansbach", "stadt": "Ansbach", "strasse": "Eyber Straße 15", "plz": "91522", "tel": "", "status": "geprueft", "lat": 49.3035489, "lon": 10.5820636, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}];
+const START = [{"name": "Irish Castle Pub", "stadt": "Nürnberg", "strasse": "Schlehengasse 31", "plz": "90402", "tel": "0911 224878", "status": "geprueft", "lat": 49.4488363, "lon": 11.0668663, "preis": null, "bestaetigt": null, "web": "https://www.irish-castle-pub.com/", "menu": "https://www.irish-castle-pub.com/karte", "preis_quelle": "", "zeiten": {"do": ["18:00", "01:00"], "fr": ["18:00", "02:00"], "sa": ["18:00", "02:00"], "so": null, "mo": null, "di": null, "mi": ["18:00", "01:00"]}, "zeitenQuelle": "Google"}, {"name": "Mulligan's Irish Pub, Bar und Grill", "stadt": "Nürnberg", "strasse": "Königstraße 71", "plz": "90402", "tel": "0911 21216450", "status": "geprueft", "lat": 49.4485898, "lon": 11.0804456, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": "", "zeiten": {"do": ["11:00", "03:00"], "fr": ["11:00", "05:00"], "sa": ["11:00", "05:00"], "so": ["11:00", "03:00"], "mo": ["11:00", "03:00"], "di": ["11:00", "03:00"], "mi": ["11:00", "03:00"]}, "zeitenQuelle": "Google"}, {"name": "The Old Shillelagh", "stadt": "Nürnberg", "strasse": "Schnieglinger Straße 236", "plz": "90427", "tel": "", "status": "geprueft", "lat": 49.4676986, "lon": 11.029164, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": "", "zeiten": {"do": ["18:00", "23:00"], "fr": ["18:00", "23:00"], "sa": ["18:00", "23:00"], "so": null, "mo": ["18:00", "23:00"], "di": ["18:00", "23:00"], "mi": ["18:00", "23:00"]}, "zeitenQuelle": "Google"}, {"name": "Kilians Irish Pub", "stadt": "Nürnberg", "strasse": "Hallplatz 21", "plz": "90402", "tel": "", "status": "geprueft", "lat": 49.4488171, "lon": 11.0782016, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": "", "zeiten": {"do": ["14:00", "05:00"], "fr": ["12:00", "05:00"], "sa": ["12:00", "05:00"], "so": ["12:00", "05:00"], "mo": ["14:00", "05:00"], "di": ["14:00", "05:00"], "mi": ["14:00", "05:00"]}, "zeitenQuelle": "Google"}, {"name": "O'Sheas Irish Pub", "stadt": "Nürnberg", "strasse": "Engelhardsgasse 7", "plz": "90402", "tel": "0911-203210", "status": "plausibel", "lat": 49.4486764, "lon": 11.0696014, "preis": null, "bestaetigt": null, "web": "https://osheas.de/", "menu": "https://osheas.de/getraenke/", "preis_quelle": "", "zeiten": {"do": ["16:00", "01:00"], "fr": ["14:00", "02:00"], "sa": ["14:00", "02:00"], "so": ["14:00", "01:00"], "mo": ["16:00", "01:00"], "di": ["16:00", "01:00"], "mi": ["16:00", "01:00"]}, "zeitenQuelle": "Google"}, {"name": "Finnegan's Irish Pub", "stadt": "Nürnberg", "strasse": "Königstraße 80", "plz": "90402", "tel": "0911-203210", "status": "plausibel", "lat": 49.4476214, "lon": 11.0808408, "preis": null, "bestaetigt": null, "web": "https://finnegansirishpub.de/", "menu": "https://finnegansirishpub.de/getraenke/", "preis_quelle": ""}, {"name": "Dubliner Irish Pub & Sports Bar", "stadt": "Nürnberg", "strasse": "Königstraße 59", "plz": "90402", "tel": "", "status": "plausibel", "lat": 49.449075, "lon": 11.0799389, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": ""}, {"name": "O'Toole's Schmiede", "stadt": "Nürnberg", "strasse": "Bärenschanzstraße 89", "plz": "90429", "tel": "", "status": "plausibel", "lat": 49.4525711, "lon": 11.0530154, "preis": null, "bestaetigt": null, "web": "https://www.otooles.de/", "menu": "", "preis_quelle": "", "zeiten": {"do": ["17:00", "00:00"], "fr": ["17:00", "01:00"], "sa": ["17:00", "01:00"], "so": ["17:00", "23:00"], "mo": null, "di": null, "mi": ["17:00", "00:00"]}, "zeitenQuelle": "Google"}, {"name": "Murphy's Law", "stadt": "Erlangen", "strasse": "Bismarckstraße 30", "plz": "91054", "tel": "09131 8297899", "status": "geprueft", "lat": 49.5979973, "lon": 11.0154366, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": "", "zeiten": {"do": ["18:00", "01:00"], "fr": ["18:00", "01:00"], "sa": ["18:00", "01:00"], "so": null, "mo": ["18:00", "01:00"], "di": ["18:00", "01:00"], "mi": ["18:00", "01:00"]}, "zeitenQuelle": "Google"}, {"name": "Goldener Mond", "stadt": "Erlangen", "strasse": "Innere Brucker Straße 18", "plz": "91054", "tel": "09131 8286205", "status": "geprueft", "lat": 49.595204, "lon": 11.0031747, "preis": null, "bestaetigt": null, "web": "https://goldenermond.de/", "menu": "https://goldenermond.de/", "preis_quelle": "", "zeiten": {"do": ["18:00", "02:00"], "fr": ["18:00", "04:00"], "sa": ["18:00", "04:00"], "so": null, "mo": null, "di": ["18:00", "02:00"], "mi": ["18:00", "02:00"]}, "zeitenQuelle": "Google"}, {"name": "Granny Mac's Irish Pub", "stadt": "Erlangen", "strasse": "Hauptstraße 106", "plz": "91054", "tel": "", "status": "plausibel", "lat": 49.6024187, "lon": 11.0039965, "preis": null, "bestaetigt": null, "web": "https://www.granny-macs.de/", "menu": "", "preis_quelle": "", "zeiten": {"do": ["18:00", "01:00"], "fr": ["18:00", "02:00"], "sa": ["18:00", "02:00"], "so": null, "mo": ["18:00", "23:00"], "di": ["18:00", "01:00"], "mi": ["18:00", "01:00"]}, "zeitenQuelle": "Google"}, {"name": "Cheers im Pfeifndurla", "stadt": "Fürth", "strasse": "Gustavstraße 36", "plz": "90762", "tel": "0911 47895856", "status": "geprueft", "lat": 49.4792515, "lon": 10.9888143, "preis": null, "bestaetigt": null, "web": "https://www.cheers-im-pfeifndurla.de/", "menu": "https://www.cheers-im-pfeifndurla.de/pubfood", "preis_quelle": "", "zeiten": {"do": ["16:00", "00:00"], "fr": ["16:00", "02:00"], "sa": ["16:00", "02:00"], "so": ["16:00", "00:00"], "mo": ["16:00", "00:00"], "di": ["16:00", "00:00"], "mi": ["16:00", "00:00"]}, "zeitenQuelle": "Google"}, {"name": "Irish Cottage", "stadt": "Fürth", "strasse": "Waagplatz 1", "plz": "90762", "tel": "", "status": "plausibel", "lat": 49.4785926, "lon": 10.9881768, "preis": null, "bestaetigt": null, "web": "https://www.irishcottagepub.com/", "menu": "", "preis_quelle": "", "zeiten": {"do": ["17:00", "02:00"], "fr": ["17:00", "02:00"], "sa": ["17:00", "02:00"], "so": ["17:00", "00:00"], "mo": ["17:00", "02:00"], "di": ["17:00", "02:00"], "mi": ["17:00", "02:00"]}, "zeitenQuelle": "Google"}, {"name": "Kilians Irish Pub", "stadt": "Bamberg", "strasse": "", "plz": "96047", "tel": "", "status": "offen", "lat": 49.8916044, "lon": 10.8868478, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": "", "zeiten": {"do": ["15:00", "02:00"], "fr": ["12:00", "04:00"], "sa": ["12:00", "04:00"], "so": ["12:00", "02:00"], "mo": ["15:00", "02:00"], "di": ["15:00", "02:00"], "mi": ["15:00", "02:00"]}, "zeitenQuelle": "Google"}, {"name": "Alte Wache", "stadt": "Forchheim", "strasse": "Paradeplatz 17A", "plz": "91301", "tel": "", "status": "geprueft", "lat": 49.718365, "lon": 11.060863, "preis": null, "bestaetigt": null, "web": "https://www.facebook.com/derGringobeiderAltenWache/", "menu": "", "preis_quelle": "", "zeiten": {"do": ["11:00", "22:00"], "fr": ["11:00", "23:00"], "sa": ["10:00", "23:00"], "so": ["10:00", "21:00"], "mo": ["11:00", "22:00"], "di": null, "mi": ["11:00", "22:00"]}, "zeitenQuelle": "Google"}, {"name": "Cobbler's Irish Pub", "stadt": "Coburg", "strasse": "", "plz": "96450", "tel": "", "status": "offen", "lat": 50.2582226, "lon": 10.964561, "preis": null, "bestaetigt": null, "web": "https://www.cobblers.de/", "menu": "", "preis_quelle": ""}, {"name": "Fiddler's Green Irish Pub", "stadt": "Schweinfurt", "strasse": "Spitalstraße 32", "plz": "97421", "tel": "", "status": "plausibel", "lat": 50.0437455, "lon": 10.2324088, "preis": null, "bestaetigt": null, "web": "https://fiddlersgreenpub.de/", "menu": "https://fiddlersgreenpub.de/speisen-getraenke/", "preis_quelle": "", "zeiten": {"do": ["20:00", "01:00"], "fr": ["20:00", "02:00"], "sa": ["20:00", "02:00"], "so": ["20:00", "01:00"], "mo": ["20:00", "01:00"], "di": ["20:00", "01:00"], "mi": ["20:00", "01:00"]}, "zeitenQuelle": "Google"}, {"name": "Dubliner Irish Pub", "stadt": "Bayreuth", "strasse": "Wittelsbacherring 2", "plz": "95444", "tel": "0921/512630", "status": "plausibel", "lat": 49.9432536, "lon": 11.5698209, "preis": null, "bestaetigt": null, "web": "https://dubliner-bayreuth.de/", "menu": "", "preis_quelle": "", "zeiten": {"do": ["19:00", "01:00"], "fr": ["18:00", "03:00"], "sa": ["18:00", "03:00"], "so": null, "mo": ["19:00", "01:00"], "di": ["19:00", "01:00"], "mi": ["19:00", "01:00"]}, "zeitenQuelle": "Google"}, {"name": "Irish Pub Ansbach", "stadt": "Ansbach", "strasse": "Eyber Straße 15", "plz": "91522", "tel": "", "status": "geprueft", "lat": 49.3035489, "lon": 10.5820636, "preis": null, "bestaetigt": null, "web": "", "menu": "", "preis_quelle": "", "zeiten": {"do": ["19:30", "00:00"], "fr": ["19:30", "02:00"], "sa": ["19:30", "02:00"], "so": null, "mo": null, "di": ["19:30", "00:00"], "mi": ["19:30", "00:00"]}, "zeitenQuelle": "Google"}];
 const KEY = "pint_v3";
 let state = JSON.parse(localStorage.getItem(KEY) || '{"overrides":{},"neu":[],"log":[],"pints":[],"preise":[]}');
 if(!state.pints) state.pints = [];
@@ -965,6 +983,12 @@ function fokus(n, s, lat, lon){
   if(l) oeffne(l);
 }
 
+function zeitPunkt(l){
+  const st = oeffnungsStatus(l);
+  if(st.art === "offen") return ` <span class="zst auf">· offen bis ${st.bis}</span>`;
+  if(st.art === "zu") return ` <span class="zst zu">· zu${st.oeffnet ? ", " + st.oeffnet : ""}</span>`;
+  return "";
+}
 function rendern(){
   const q = (document.getElementById("suche").value||"").toLowerCase();
   let liste = alle().filter(l => !q || l.name.toLowerCase().includes(q) || l.stadt.toLowerCase().includes(q));
@@ -986,7 +1010,7 @@ function rendern(){
       <span class="dot" style="background:${farbe(l)}"></span>
       <div class="info">
         <div class="nm">${esc(l.name)}</div>
-        <div class="ort">${esc(l.stadt)}${aktiv==="naehe"&&l.lat?" · "+(distanz(l)).toFixed(1)+" km":""}</div>
+        <div class="ort">${esc(l.stadt)}${aktiv==="naehe"&&l.lat?" · "+(distanz(l)).toFixed(1)+" km":""}${zeitPunkt(l)}</div>
       </div>
       <div class="preis">${l.preis ? l.preis.toFixed(2)+" €<small>Pint</small>" : '<span class="preisfrage">Preis?</span>'} </div>
     </div>`).join("") || '<div style="padding:26px 12px;color:#8d877e;font-size:13px">Nichts gefunden.</div>';
@@ -997,6 +1021,64 @@ function filter(f, el){
   rendern();
 }
 function umschalten(){ document.getElementById("sheet").classList.toggle("zu"); }
+const TAGEKURZ = ["so","mo","di","mi","do","fr","sa"];
+const TAGNAME = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+function zMin(s){ const t = String(s).split(":"); return (+t[0]) * 60 + (+t[1] || 0); }
+function zTxt(m){ m = ((m % 1440) + 1440) % 1440; return String(Math.floor(m/60)).padStart(2,"0") + ":" + String(m%60).padStart(2,"0"); }
+function zeitFenster(f){
+  if(!f || !f[0] || !f[1]) return null;
+  const s = zMin(f[0]), e = zMin(f[1]);
+  return {s, e, nacht: e <= s};
+}
+function oeffnungsStatus(l){
+  const z = l.zeiten;
+  if(!z) return {art:"unbekannt"};
+  const jetzt = new Date();
+  const i = jetzt.getDay();
+  const jetztMin = jetzt.getHours()*60 + jetzt.getMinutes();
+
+  const gestern = zeitFenster(z[TAGEKURZ[(i+6)%7]]);
+  if(gestern && gestern.nacht && jetztMin < gestern.e)
+    return {art:"offen", bis:zTxt(gestern.e), seit:zTxt(gestern.s)};
+
+  const heute = zeitFenster(z[TAGEKURZ[i]]);
+  if(heute){
+    if(heute.nacht){
+      if(jetztMin >= heute.s || jetztMin < heute.e) return {art:"offen", bis:zTxt(heute.e)};
+      return {art:"zu", oeffnet:"heute " + zTxt(heute.s)};
+    }
+    if(jetztMin >= heute.s && jetztMin < heute.e) return {art:"offen", bis:zTxt(heute.e)};
+    if(jetztMin < heute.s) return {art:"zu", oeffnet:"heute " + zTxt(heute.s)};
+  }
+  for(let k=1; k<=7; k++){
+    const t = zeitFenster(z[TAGEKURZ[(i+k)%7]]);
+    if(t) return {art:"zu", oeffnet:(k === 1 ? "morgen " : TAGNAME[(i+k)%7] + " ") + zTxt(t.s)};
+  }
+  return {art:"zu", oeffnet:null};
+}
+function zeitenZeichnen(l){
+  const box = document.getElementById("d_zeiten");
+  if(!box) return;
+  const st = oeffnungsStatus(l);
+  let badge;
+  if(st.art === "offen") badge = `<span class="badge auf">● Jetzt geöffnet · bis ${st.bis}</span>`;
+  else if(st.art === "zu") badge = `<span class="badge zu">● Geschlossen${st.oeffnet ? " · öffnet " + st.oeffnet : ""}</span>`;
+  else badge = ` <span class="badge unbekannt">Öffnungszeiten unbekannt</span>`;
+
+  if(!l.zeiten){ box.innerHTML = badge; return; }
+  const i = new Date().getDay();
+  const zeilen = ["mo","di","mi","do","fr","sa","so"].map(tag => {
+    const f = l.zeiten[tag];
+    const txt = f ? zTxt(zMin(f[0])) + " – " + zTxt(zMin(f[1])) : "Ruhetag";
+    const heute = TAGEKURZ[i] === tag;
+    return `<tr class="${heute ? "heute" : (f ? "" : "ruhe")}"><td>${TAGNAME[TAGEKURZ.indexOf(tag)]}</td><td>${txt}</td></tr>`;
+  }).join("");
+  box.innerHTML = badge +
+    `<details><summary>Alle Zeiten</summary><table>${zeilen}</table>` +
+    (l.zeitenQuelle ? `<div style="margin-top:5px;font-size:10.5px;color:#6d6862">Quelle: ${esc(l.zeitenQuelle)}</div>` : "") +
+    `</details>`;
+}
+
 function oeffne(l){
   aktuell = l;
   document.getElementById("d_name").textContent = l.name;
@@ -1004,6 +1086,7 @@ function oeffne(l){
     `<i style="background:${farbe(l)}"></i>${l.status === "geprueft" ? "geprüft" : l.status === "plausibel" ? "Guinness unbestätigt" : "nur Ort bekannt"}`;
   document.getElementById("d_adr").textContent =
     (l.strasse ? l.strasse+", " : "") + l.plz + " " + l.stadt;
+  zeitenZeichnen(l);
   const pb = document.getElementById("d_preis");
   pb.textContent = l.preis ? l.preis.toFixed(2)+" €" : "Preis unbekannt";
   pb.classList.toggle("kein", !l.preis);
@@ -1047,6 +1130,10 @@ function oeffne(l){
   document.getElementById("detail").classList.add("offen");
   if(l.lat) karte.setView([l.lat, l.lon], 15);
 }
+setInterval(() => {
+  rendern();
+  if(aktuell) zeitenZeichnen(aktuell);
+}, 60000);
 function schliessen(){ document.getElementById("detail").classList.remove("offen"); aktuell=null; }
 function setz(l,f,w){
   const k=l.name+"|"+l.stadt;
