@@ -204,6 +204,7 @@
     background:#1b1b1f center/cover no-repeat;display:flex;align-items:center;justify-content:center;
     font-size:18px;color:var(--gold);cursor:pointer}
   .mprofiltext{min-width:0}
+  .pe{display:block;font-size:10.5px;color:var(--muted);font-weight:400;margin-top:2px}
   .tzeile{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid var(--line)}
   .tzeile:last-of-type{border-bottom:0}
   .tnum{width:26px;height:26px;flex:none;border-radius:50%;background:#221d12;border:1px solid #3a3021;
@@ -1139,6 +1140,15 @@ function menue(){
 const ANGEBOTE_FALLBACK = [{"markt": "Penny", "produkt": "Guinness Draught", "menge": "0,44-l-Dose", "preis": 1.11, "uvp": 1.64, "gueltig_bis": "2026-10-24", "plz": "91352", "url": "https://www.prospektguru.de/angebote/guinness", "quelle": "kaufDA Prospekt · Link zur Kette", "gefunden_am": "2026-10-21"}, {"markt": "Netto Marken-Discount", "produkt": "Guinness Irish Draught", "menge": "4er-Pack (4 × 0,44 l)", "preis": 4.99, "uvp": 6.49, "gueltig_bis": "2026-10-24", "plz": "91352", "url": "https://www.prospektguru.de/angebote/guinness", "quelle": "kaufDA Prospekt · Link zur Kette", "gefunden_am": "2026-10-21"}, {"markt": "Aldi Nord", "produkt": "Guinness Draught", "menge": "4er-Pack (4 × 0,44 l)", "preis": 4.99, "uvp": null, "gueltig_bis": "2026-10-29", "plz": "91352", "url": "https://www.prospektguru.de/angebote/guinness"}];
 let angeboteDaten = ANGEBOTE_FALLBACK;
 
+function proEinheit(a){
+  if(!a || !a.preis) return "";
+  const m = String(a.menge || "").match(/(\d+)er-Pack/);
+  if(m){
+    const n = parseInt(m[1], 10);
+    if(n > 1) return "entspricht " + (a.preis / n).toFixed(2).replace(".", ",") + " € pro Dose";
+  }
+  return "";
+}
 function angebote(){
   const el = document.getElementById("angebote");
   el.classList.toggle("offen");
@@ -1165,6 +1175,7 @@ function zeichneAngebote(){
       </div>
       <div class="betrag">
         <b>${a.preis ? a.preis.toFixed(2) + " €" : "?"}</b>
+        <small class="pe">${proEinheit(a)}</small>
         <s>${a.uvp ? "UVP " + a.uvp.toFixed(2) + " €" : ""}</s>
       </div>
     </a>` : `
@@ -1174,7 +1185,7 @@ function zeichneAngebote(){
         <div class="pr">${esc(a.produkt)} · ${esc(a.menge)}</div>
         <div class="gueltig">gültig bis ${a.gueltig_bis ? new Date(a.gueltig_bis).toLocaleDateString("de-DE") : "?"}</div>
       </div>
-      <div class="betrag"><b>${a.preis ? a.preis.toFixed(2) + " €" : "?"}</b></div>
+      <div class="betrag"><b>${a.preis ? a.preis.toFixed(2) + " €" : "?"}</b><small class="pe">${proEinheit(a)}</small></div>
     </div>`).join("");
 }
 function ueberSchliessen(){ document.getElementById("ueber").classList.remove("offen"); }
