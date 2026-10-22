@@ -230,7 +230,38 @@
   "bestaetigt": null,
   "web": "https://finnegansirishpub.de/",
   "menu": "https://finnegansirishpub.de/getraenke/",
-  "preis_quelle": ""
+  "preis_quelle": "",
+  "zeiten": {
+   "mo": [
+    "11:00",
+    "01:00"
+   ],
+   "di": [
+    "11:00",
+    "01:00"
+   ],
+   "mi": [
+    "11:00",
+    "01:00"
+   ],
+   "do": [
+    "11:00",
+    "01:00"
+   ],
+   "fr": [
+    "11:00",
+    "02:00"
+   ],
+   "sa": [
+    "10:00",
+    "02:00"
+   ],
+   "so": [
+    "10:00",
+    "01:00"
+   ]
+  },
+  "zeitenQuelle": "finnegansirishpub.de"
  },
  {
   "name": "Dubliner Irish Pub & Sports Bar",
