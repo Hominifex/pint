@@ -947,19 +947,19 @@ function rendern(){
     const b = new Set(state.pints.map(p => p.name + "|" + p.stadt));
     liste = liste.filter(l => b.has(l.name + "|" + l.stadt));
   }
-  if(aktiv === "naehe" && userPos){
-    if(umkreis > 0) liste = liste.filter(l => l.lat && distanz(l) <= umkreis);
-    liste = liste.slice().sort((a,b)=>distanz(a)-distanz(b));
-  } else if(aktiv === "naehe" && !userPos){
-    standort();
+  if(aktiv === "naehe"){
+    if(!userPos) standort();
+    else if(umkreis > 0) liste = liste.filter(l => l.lat && distanz(l) <= umkreis);
   }
+  if(userPos) liste = liste.slice().sort((a,b) =>
+    (a.lat ? distanz(a) : 1e9) - (b.lat ? distanz(b) : 1e9));
   document.getElementById("zahl").textContent = liste.length + " Pubs";
   document.getElementById("liste").innerHTML = liste.map(l=>`
     <div class="row" onclick='oeffne(${JSON.stringify(l).replace(/'/g,"&#39;")})'>
       <span class="dot" style="background:${farbe(l)}"></span>
       <div class="info">
         <div class="nm">${esc(l.name)}</div>
-        <div class="ort">${esc(l.stadt)}${aktiv==="naehe"&&l.lat?" · "+(distanz(l)).toFixed(1)+" km":""}${zeitPunkt(l)}</div>
+        <div class="ort">${esc(l.stadt)}${userPos&&l.lat?" · "+(distanz(l)).toFixed(1)+" km":""}${zeitPunkt(l)}</div>
       </div>
       <div class="preis">${l.preis ? l.preis.toFixed(2)+" €<small>Pint</small>" : '<span class="preisfrage">Preis?</span>'} </div>
     </div>`).join("") || '<div style="padding:26px 12px;color:#8d877e;font-size:13px">Nichts gefunden.</div>';
@@ -1975,7 +1975,7 @@ function praesenzKnopf(){
   document.addEventListener(ev, e => { if(!e.target.closest("#karte")) e.preventDefault(); }, {passive:false}));
 document.addEventListener("dblclick", e => { if(!e.target.closest("#karte")) e.preventDefault(); }, {passive:false});
 
-window.addEventListener("load",()=>{ initKarte(); rendern(); zaehlePints(); profilMalen(); startZeigen(); ladeMeldungen(); profilSichern();
+window.addEventListener("load",()=>{ initKarte(); rendern(); standortLeise(); zaehlePints(); profilMalen(); startZeigen(); ladeMeldungen(); profilSichern();
   const p = new URLSearchParams(location.search).get("buddy");
   if(p){ setTimeout(() => { buddyPanel().then(() => { const f = document.getElementById("b_neu"); if(f){ f.value = p.toUpperCase(); f.focus(); } }); }, 900); }
   if('serviceWorker' in navigator){
