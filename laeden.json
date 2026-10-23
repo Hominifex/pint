@@ -626,21 +626,6 @@
   "zeitenQuelle": "Google"
  },
  {
-  "name": "Cobbler's Irish Pub",
-  "stadt": "Coburg",
-  "strasse": "",
-  "plz": "96450",
-  "tel": "",
-  "status": "offen",
-  "lat": 50.2582226,
-  "lon": 10.964561,
-  "preis": null,
-  "bestaetigt": null,
-  "web": "https://www.cobblers.de/",
-  "menu": "",
-  "preis_quelle": ""
- },
- {
   "name": "Fiddler's Green Irish Pub",
   "stadt": "Schweinfurt",
   "strasse": "Spitalstraße 32",
