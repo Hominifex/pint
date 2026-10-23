@@ -642,7 +642,10 @@
       <div>
         <h3>Where is my Pint?</h3>
         <div class="uunter">Die wichtigste Frage nach 21 Uhr — endlich mit Antwort.</div>
-        <div class="uunter" style="margin-top:4px;font-size:10.5px;color:#6d6862" id="stand">Stand: 23.10.2026 17:40</div>
+        <div class="uunter" style="margin-top:4px;font-size:10.5px;color:#6d6862" id="stand">Stand: 23.10.2026 17:43</div>
+        <div class="uunter" style="margin-top:2px;font-size:10.5px;color:#6d6862" id="z_stand"></div>
+        <div class="uunter" style="margin-top:2px;font-size:10px;color:#5c574f">
+          Gezählt werden nur Aufrufe pro Tag — ohne Kennungen, ohne Weitergabe an Dritte.</div>
       </div>
       <button class="x" onclick="ueberSchliessen()">×</button>
     </div>
@@ -1894,6 +1897,20 @@ function abendZeile(a){
   </div>`;
 }
 
+async function zaehlen(){
+  try{ await sbRpc("zaehlen", {}); }catch(e){}
+}
+async function zaehlerAnzeigen(){
+  const el = document.getElementById("z_stand");
+  if(!el) return;
+  try{
+    const r = await sbRpc("zaehler_stand", {});
+    const d = Array.isArray(r) ? r[0] : r;
+    if(d && typeof d.heute === "number")
+      el.textContent = "Aufrufe: heute " + d.heute + " · 7 Tage " + d.sieben_tage + " · gesamt " + d.gesamt;
+  }catch(e){ /* Zähler noch nicht angelegt */ }
+}
+
 async function ladeAbende(){
   const liste = document.getElementById("a_liste"), leer = document.getElementById("a_leer");
   let daten;
@@ -2240,7 +2257,7 @@ function praesenzKnopf(){
   document.addEventListener(ev, e => { if(!e.target.closest("#karte")) e.preventDefault(); }, {passive:false}));
 document.addEventListener("dblclick", e => { if(!e.target.closest("#karte")) e.preventDefault(); }, {passive:false});
 
-window.addEventListener("load",()=>{ initKarte(); rendern(); titelSetzen(); standortLeise(); zaehlePints(); profilMalen(); startZeigen(); ladeMeldungen(); profilSichern();
+window.addEventListener("load",()=>{ initKarte(); rendern(); titelSetzen(); standortLeise(); zaehlen(); zaehlerAnzeigen(); zaehlePints(); profilMalen(); startZeigen(); ladeMeldungen(); profilSichern();
   const p = new URLSearchParams(location.search).get("buddy");
   if(p){ setTimeout(() => { buddyPanel().then(() => { const f = document.getElementById("b_neu"); if(f){ f.value = p.toUpperCase(); f.focus(); } }); }, 900); }
   if('serviceWorker' in navigator){
