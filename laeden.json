@@ -813,5 +813,21 @@
   "bestaetigt": null,
   "status": "plausibel",
   "preis_quelle": ""
+ },
+ {
+  "name": "Kuckucksklause",
+  "stadt": "Forchheim",
+  "strasse": "Hutstraße 5",
+  "plz": "91301",
+  "lat": 49.72046,
+  "lon": 11.11043,
+  "web": "",
+  "menu": "",
+  "tel": "",
+  "preis": null,
+  "bestaetigt": null,
+  "status": "geprueft",
+  "preis_quelle": "",
+  "hinweis": "Öffnet unregelmäßig — vorher anrufen"
  }
 ]
