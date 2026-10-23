@@ -204,6 +204,9 @@
     background:#1b1b1f center/cover no-repeat;display:flex;align-items:center;justify-content:center;
     font-size:18px;color:var(--gold);cursor:pointer}
   .mprofiltext{min-width:0}
+  .rowlink{display:flex;align-items:center;justify-content:center;width:34px;height:34px;
+    border-radius:10px;background:#221d12;color:var(--gold);font-size:15px;text-decoration:none;flex:0 0 auto}
+  .rowlink:active{background:var(--gold);color:#191307}
   .zst{font-size:11px;font-weight:600}
   .zst.auf{color:#66c98d}
   .zst.zu{color:#e2807a}
@@ -617,7 +620,7 @@
       <div>
         <h3>Where is my Pint?</h3>
         <div class="uunter">Die wichtigste Frage nach 21 Uhr — endlich mit Antwort.</div>
-        <div class="uunter" style="margin-top:4px;font-size:10.5px;color:#6d6862" id="stand">Stand: 23.10.2026 16:42</div>
+        <div class="uunter" style="margin-top:4px;font-size:10.5px;color:#6d6862" id="stand">Stand: 23.10.2026 17:37</div>
       </div>
       <button class="x" onclick="ueberSchliessen()">×</button>
     </div>
@@ -1044,6 +1047,9 @@ function rendern(){
         <div class="nm">${esc(l.name)}</div>
         <div class="ort">${esc(l.stadt)}${userPos&&l.lat?" · "+(distanz(l)).toFixed(1)+" km":""}${zeitPunkt(l)}</div>
       </div>
+      ${(aktiv === "besucht" && l.web)
+        ? `<a class="rowlink" href="${esc(l.web)}" target="_blank" rel="noopener"
+             onclick="event.stopPropagation()" title="Website öffnen">↗</a>` : ""}
       <div class="preis">${l.preis ? l.preis.toFixed(2)+" €<small>Pint</small>" : '<span class="preisfrage">Preis?</span>'} </div>
     </div>`).join("") || leerText;
 }
@@ -1548,8 +1554,13 @@ function nurBesuchte(){
   if(!anzahl){ alert("Noch keine besuchten Pubs. Trage einen Pint ein."); return; }
   aktiv = "besucht";
   document.querySelectorAll(".chip[data-f]").forEach(c => c.classList.toggle("an", c.dataset.f === "besucht"));
-  menue();
+  const m = document.getElementById("menu");
+  if(m) m.classList.remove("offen");        // Menü sicher schließen
   rendern();
+  const sh = document.getElementById("sheet");
+  if(sh) sh.classList.remove("zu");          // Liste aufklappen statt zur Karte zurück
+  const l = document.getElementById("liste");
+  if(l) l.scrollTop = 0;
 }
 function teilen(){
   const j = jahrStats();
