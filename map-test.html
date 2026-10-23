@@ -540,7 +540,7 @@
 <div id="sheet">
   <div class="griff" onclick="umschalten()"></div>
   <div class="sheetkopf" onclick="umschalten()">
-    <h2>Guinness in Franken</h2>
+    <h2 id="listen_titel">Guinness in Franken</h2>
     <span class="zahl" id="zahl"></span>
     <span class="pintzaehler" onclick="event.stopPropagation();statistik()">🍺 <b id="heute">0</b> heute</span>
   </div>
@@ -620,7 +620,7 @@
       <div>
         <h3>Where is my Pint?</h3>
         <div class="uunter">Die wichtigste Frage nach 21 Uhr — endlich mit Antwort.</div>
-        <div class="uunter" style="margin-top:4px;font-size:10.5px;color:#6d6862" id="stand">Stand: 23.10.2026 12:14</div>
+        <div class="uunter" style="margin-top:4px;font-size:10.5px;color:#6d6862" id="stand">Stand: 23.10.2026 12:16</div>
       </div>
       <button class="x" onclick="ueberSchliessen()">×</button>
     </div>
@@ -1976,7 +1976,7 @@ function praesenzKnopf(){
   document.addEventListener(ev, e => { if(!e.target.closest("#karte")) e.preventDefault(); }, {passive:false}));
 document.addEventListener("dblclick", e => { if(!e.target.closest("#karte")) e.preventDefault(); }, {passive:false});
 
-window.addEventListener("load",()=>{ initKarte(); rendern(); standortLeise(); zaehlePints(); profilMalen(); startZeigen(); ladeMeldungen(); profilSichern();
+window.addEventListener("load",()=>{ initKarte(); rendern(); titelSetzen(); standortLeise(); zaehlePints(); profilMalen(); startZeigen(); ladeMeldungen(); profilSichern();
   const p = new URLSearchParams(location.search).get("buddy");
   if(p){ setTimeout(() => { buddyPanel().then(() => { const f = document.getElementById("b_neu"); if(f){ f.value = p.toUpperCase(); f.focus(); } }); }, 900); }
   if('serviceWorker' in navigator){
