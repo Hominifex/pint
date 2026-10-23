@@ -764,10 +764,10 @@
   "web": "",
   "menu": "",
   "tel": "",
-  "preis": 5.8,
+  "preis": null,
   "bestaetigt": "2026-10-23",
   "status": "geprueft",
-  "preis_quelle": "Speisekarte des Hauses",
+  "preis_quelle": "",
   "zeiten": {
    "mo": [
     "17:00",
