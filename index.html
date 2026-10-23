@@ -537,7 +537,7 @@
 <div id="sheet">
   <div class="griff" onclick="umschalten()"></div>
   <div class="sheetkopf" onclick="umschalten()">
-    <h2 id="listen_titel">Guinness in Franken</h2>
+    <h2 id="listen_titel">Guinness-Pubs</h2>
     <span class="zahl" id="zahl"></span>
     <span class="pintzaehler" onclick="event.stopPropagation();statistik()">🍺 <b id="heute">0</b> heute</span>
   </div>
@@ -617,7 +617,7 @@
       <div>
         <h3>Where is my Pint?</h3>
         <div class="uunter">Die wichtigste Frage nach 21 Uhr — endlich mit Antwort.</div>
-        <div class="uunter" style="margin-top:4px;font-size:10.5px;color:#6d6862" id="stand">Stand: 23.10.2026 12:16</div>
+        <div class="uunter" style="margin-top:4px;font-size:10.5px;color:#6d6862" id="stand">Stand: 23.10.2026 12:22</div>
       </div>
       <button class="x" onclick="ueberSchliessen()">×</button>
     </div>
@@ -946,6 +946,7 @@ function standortLeise(){
     }
     zeichneKreis();
     titelSetzen();
+    if(karte && !window._karteVerschoben) karte.setView(userPos, 11);
     rendern();
   }, () => {
     const hinweis = document.getElementById("genauigkeit");
@@ -961,6 +962,8 @@ function initKarte(){
   karte.on("zoomend", () => {
     Object.keys(marker).forEach(k => { const m = marker[k]; if(m && m._pub) m.setIcon(pintIcon(m._pub)); });
   });
+  karte.on("dragend", () => { window._karteVerschoben = true; });
+  karte.on("zoomend", () => { window._karteVerschoben = true; });
   [0, 300, 900].forEach(t => setTimeout(() => karte.invalidateSize(), t));
 }
 
@@ -1006,7 +1009,7 @@ function fokus(n, s, lat, lon){
 
 function titelSetzen(){
   const h = document.getElementById("listen_titel");
-  if(h) h.textContent = userPos ? "Guinness in deiner Nähe" : "Guinness in Franken";
+  if(h) h.textContent = userPos ? "Guinness in deiner Nähe" : "Guinness-Pubs";
 }
 function zeitPunkt(l){
   const st = oeffnungsStatus(l);
@@ -1030,6 +1033,10 @@ function rendern(){
   if(userPos) liste = liste.slice().sort((a,b) =>
     (a.lat ? distanz(a) : 1e9) - (b.lat ? distanz(b) : 1e9));
   document.getElementById("zahl").textContent = liste.length + " Pubs";
+  const leerText = (userPos && !liste.length)
+    ? '<div style="padding:22px 14px;color:#8d877e;font-size:13px;line-height:1.5">Hier ist noch kein Pub eingetragen.<br>' +
+      '<button class="btn" style="margin-top:10px" onclick="neuerPub()">Pub hier eintragen</button></div>'
+    : '<div style="padding:26px 12px;color:#8d877e;font-size:13px">Nichts gefunden.</div>';
   document.getElementById("liste").innerHTML = liste.map(l=>`
     <div class="row" onclick='oeffne(${JSON.stringify(l).replace(/'/g,"&#39;")})'>
       <span class="dot" style="background:${farbe(l)}"></span>
@@ -1038,7 +1045,7 @@ function rendern(){
         <div class="ort">${esc(l.stadt)}${userPos&&l.lat?" · "+(distanz(l)).toFixed(1)+" km":""}${zeitPunkt(l)}</div>
       </div>
       <div class="preis">${l.preis ? l.preis.toFixed(2)+" €<small>Pint</small>" : '<span class="preisfrage">Preis?</span>'} </div>
-    </div>`).join("") || '<div style="padding:26px 12px;color:#8d877e;font-size:13px">Nichts gefunden.</div>';
+    </div>`).join("") || leerText;
 }
 function filter(f, el){
   aktiv = f;
