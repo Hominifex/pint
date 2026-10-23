@@ -136,6 +136,10 @@
   .abendrow .knöpfe button.an{background:rgba(63,169,106,.18);border-color:rgba(63,169,106,.5);color:#7ed49b}
   .abendrow .knöpfe button.vl{background:rgba(216,174,87,.15);border-color:rgba(216,174,87,.45);color:var(--gold)}
   .abendrow .knöpfe button.aus{background:rgba(192,96,90,.14);border-color:rgba(192,96,90,.4);color:#e2807a}
+  .abendrow .personen{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:12.5px;color:#b3a893}
+  .abendrow .personen button{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);
+    background:#221d12;color:var(--gold);font-size:16px;line-height:1}
+  .abendrow .personen b{color:var(--ink);min-width:16px;text-align:center}
   .abendrow .res{display:block;margin-top:9px;text-align:center;padding:10px;border-radius:10px;
     background:var(--gold);color:#191307;font-weight:650;font-size:13.5px}
   /* Pint-Buddy */
@@ -165,9 +169,9 @@
     font-weight:650;font-size:14px;font-family:inherit;cursor:pointer}
   .bneu{display:inline-flex;min-width:18px;height:18px;padding:0 5px;margin-left:6px;border-radius:9px;
     background:var(--gold);color:#1a1408;font-size:11px;font-weight:700;align-items:center;justify-content:center;vertical-align:middle}
-  #abend, #buddy{position:fixed;inset:0;z-index:1200;display:none;background:rgba(6,6,7,.9);
+  #abend, #buddy, #besucht{position:fixed;inset:0;z-index:1200;display:none;background:rgba(6,6,7,.97);
     backdrop-filter:blur(8px);overflow:auto;padding:18px}
-  #abend.offen, #buddy.offen{display:block}
+  #abend.offen, #buddy.offen, #besucht.offen{display:block}
   #buddy .bkarte{max-width:430px;margin:5vh auto 0;background:var(--sheet);border:1px solid var(--line);
     border-radius:20px;padding:20px}
   #buddy h3{margin:0;font-size:18px}
@@ -642,7 +646,7 @@
       <div>
         <h3>Where is my Pint?</h3>
         <div class="uunter">Die wichtigste Frage nach 21 Uhr — endlich mit Antwort.</div>
-        <div class="uunter" style="margin-top:4px;font-size:10.5px;color:#6d6862" id="stand">Stand: 23.10.2026 17:43</div>
+        <div class="uunter" style="margin-top:4px;font-size:10.5px;color:#6d6862" id="stand">Stand: 23.10.2026 17:59</div>
         <div class="uunter" style="margin-top:2px;font-size:10.5px;color:#6d6862" id="z_stand"></div>
         <div class="uunter" style="margin-top:2px;font-size:10px;color:#5c574f">
           Gezählt werden nur Aufrufe pro Tag — ohne Kennungen, ohne Weitergabe an Dritte.</div>
@@ -695,6 +699,19 @@
     <div class="csend">
       <input id="c_text" maxlength="500" placeholder="Nachricht …" autocomplete="off">
       <button onclick="sendeNachricht()">Senden</button>
+    </div>
+  </div>
+</div>
+
+<div id="besucht">
+  <div class="ukarte">
+    <div class="ukopf">
+      <div><h3>Besuchte Pubs</h3><div class="uunter" id="be_unter">Deine Pints, nach Pub sortiert</div></div>
+      <button class="x" onclick="besuchtSchliessen()">×</button>
+    </div>
+    <div class="uliste" id="be_liste" style="padding:2px 0"></div>
+    <div class="uklein" id="be_leer" style="padding:14px 4px;text-align:center;display:none">
+      Noch kein Pint eingetragen. Tippe auf einen Pub und dann „Pint hier getrunken".
     </div>
   </div>
 </div>
@@ -1609,18 +1626,57 @@ function routeStarten(){
   log("Pint-Route · " + pubs.map(l => l.name).join(" → "));
 }
 function nurBesuchte(){
-  const besucht = new Set(state.pints.map(p => p.name + "|" + p.stadt));
-  const anzahl = alle().filter(l => besucht.has(l.name + "|" + l.stadt)).length;
-  if(!anzahl){ alert("Noch keine besuchten Pubs. Trage einen Pint ein."); return; }
-  aktiv = "besucht";
-  document.querySelectorAll(".chip[data-f]").forEach(c => c.classList.toggle("an", c.dataset.f === "besucht"));
+  besuchtPanel();
+}
+function besuchtSchliessen(){
+  document.getElementById("besucht").classList.remove("offen");
+}
+function besuchtPanel(){
   const m = document.getElementById("menu");
-  if(m) m.classList.remove("offen");        // Menü sicher schließen
-  rendern();
-  const sh = document.getElementById("sheet");
-  if(sh) sh.classList.remove("zu");          // Liste aufklappen statt zur Karte zurück
-  const l = document.getElementById("liste");
-  if(l) l.scrollTop = 0;
+  if(m) m.classList.remove("offen");
+  document.getElementById("besucht").classList.add("offen");
+
+  // Pints je Pub bündeln
+  const gruppen = {};
+  state.pints.forEach(p => {
+    const k = p.name + "|" + (p.stadt || "");
+    const g = gruppen[k] || (gruppen[k] = {name:p.name, stadt:p.stadt || "", anzahl:0, letzter:null, summe:0});
+    g.anzahl++;
+    if(p.zeit && (!g.letzter || p.zeit > g.letzter)) g.letzter = p.zeit;
+  });
+  const zeilen = Object.values(gruppen).sort((a,b) =>
+    (b.letzter || "").localeCompare(a.letzter || ""));
+
+  const liste = document.getElementById("be_liste");
+  const leer = document.getElementById("be_leer");
+  document.getElementById("be_unter").textContent =
+    zeilen.length ? zeilen.length + " Pubs · " + state.pints.length + " Pints insgesamt"
+                  : "Deine Pints, nach Pub sortiert";
+  leer.style.display = zeilen.length ? "none" : "block";
+
+  liste.innerHTML = zeilen.map(z => {
+    const pub = alle().find(l => l.name === z.name && (l.stadt || "") === z.stadt);
+    const dat = z.letzter ? new Date(z.letzter).toLocaleDateString("de-DE") : "—";
+    const preis = pub && pub.preis ? pub.preis.toFixed(2).replace(".", ",") + " €" : "";
+    const link = pub && pub.web
+      ? `<a class="rowlink" href="${esc(pub.web)}" target="_blank" rel="noopener"
+           onclick="event.stopPropagation()" title="Website öffnen">↗</a>` : "";
+    return `<div class="row" onclick="besuchtOeffnen('${esc(z.name).replace(/'/g, "\'")}','${esc(z.stadt).replace(/'/g, "\'")}')">
+      <span class="dot" style="background:${pub ? farbe(pub) : "#6d6862"}"></span>
+      <div class="info">
+        <div class="nm">${esc(z.name)}</div>
+        <div class="ort">${esc(z.stadt)} · zuletzt ${dat}${preis ? " · Pint " + preis : ""}</div>
+      </div>
+      <div class="preis"><b style="color:var(--gold)">${z.anzahl}×</b></div>
+      ${link}
+    </div>`;
+  }).join("");
+}
+function besuchtOeffnen(name, stadt){
+  const l = alle().find(x => x.name === name && (x.stadt || "") === stadt);
+  if(!l) return;
+  besuchtSchliessen();
+  oeffne(l);
 }
 function teilen(){
   const j = jahrStats();
@@ -1872,6 +1928,8 @@ function abendZeile(a){
   const pub = alle().find(x => x.name === a.pub && (x.stadt||"") === (a.stadt||""));
   const tel = pub && pub.tel ? String(pub.tel).replace(/[^0-9+]/g,"") : "";
   const zusagen = a.anzahl_ja || 0, viel = a.anzahl_vielleicht || 0;
+  const pja = a.personen_ja || 0;
+  const meine = a.mein_personen || 1;
   const platz = a.platz ? a.platz : null;
   const reicht = platz ? (zusagen >= platz ? " · Tisch voll" : " · " + (platz - zusagen) + " Plätze frei") : "";
 
@@ -1882,17 +1940,23 @@ function abendZeile(a){
       <div class="knöpfe"><button class="aus" onclick="abendAbsagen(${a.id})">Abend absagen</button></div>`;
   }else{
     const s = a.mein_status;
+    const bringe = s === "ja"
+      ? `<div class="personen"><span>Ich bringe</span>
+           <button onclick="abendPersonen(${a.id},${Math.max(1, meine - 1)})">−</button>
+           <b>${meine}</b>
+           <button onclick="abendPersonen(${a.id},${Math.min(10, meine + 1)})">+</button>
+           <span>${meine === 1 ? "Person" : "Personen"}</span></div>` : "";
     knoepfe = `<div class="knöpfe">
-      <button class="${s === "ja" ? "an" : ""}" onclick="abendAntwort(${a.id},'ja')">Dabei</button>
-      <button class="${s === "vielleicht" ? "vl" : ""}" onclick="abendAntwort(${a.id},'vielleicht')">Vielleicht</button>
-      <button class="${s === "nein" ? "aus" : ""}" onclick="abendAntwort(${a.id},'nein')">Kann nicht</button>
-    </div>`;
+      <button class="${s === "ja" ? "an" : ""}" onclick="abendAntwort(${a.id},'ja',${meine})">Dabei</button>
+      <button class="${s === "vielleicht" ? "vl" : ""}" onclick="abendAntwort(${a.id},'vielleicht',${meine})">Vielleicht</button>
+      <button class="${s === "nein" ? "aus" : ""}" onclick="abendAntwort(${a.id},'nein',1)">Kann nicht</button>
+    </div>${bringe}`;
   }
 
   return `<div class="abendrow">
     <div class="kopf"><b>${esc(a.pub)}</b><span>${abendZeit(a.zeit)}</span></div>
     <div class="meta">von ${esc(a.veranstalter)}${a.stadt ? " · " + esc(a.stadt) : ""}${a.notiz ? " · " + esc(a.notiz) : ""}</div>
-    <div class="zahl"><b>${zusagen}</b> dabei · ${viel} vielleicht${reicht}</div>
+    <div class="zahl"><b>${zusagen}</b> dabei · ${viel} vielleicht${pja ? " · " + pja + " Personen" : ""}${reicht}</div>
     ${knoepfe}
   </div>`;
 }
@@ -1927,9 +1991,21 @@ async function ladeAbende(){
   liste.innerHTML = daten.map(abendZeile).join("");
 }
 
-async function abendAntwort(id, status){
-  try{ await sbRpc("abend_antwort", {p_geraet: geraet, p_id: id, p_status: status}); }
-  catch(e){ alert("Antwort konnte nicht gespeichert werden."); }
+async function abendAntwort(id, status, personen){
+  const mitPersonen = {p_geraet: geraet, p_id: id, p_status: status, p_personen: personen || 1};
+  const ohne = {p_geraet: geraet, p_id: id, p_status: status};
+  try{ await sbRpc("abend_antwort", mitPersonen); }
+  catch(e){
+    // Ältere Datenbank ohne Personen-Spalte: ohne Anzahl speichern, damit die Zusage zählt
+    try{ await sbRpc("abend_antwort", ohne); }
+    catch(e2){ alert("Antwort konnte nicht gespeichert werden."); }
+  }
+  await ladeAbende();
+}
+async function abendPersonen(id, anzahl){
+  const n = Math.max(1, Math.min(10, anzahl));
+  try{ await sbRpc("abend_antwort", {p_geraet: geraet, p_id: id, p_status: "ja", p_personen: n}); }
+  catch(e){ alert("Personenanzahl braucht noch das Datenbank-Update."); }
   await ladeAbende();
 }
 async function abendAbsagen(id){
