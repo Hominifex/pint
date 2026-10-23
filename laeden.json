@@ -770,21 +770,6 @@
   "preis_quelle": ""
  },
  {
-  "name": "Irish Times",
-  "stadt": "Lauf an der Pegnitz",
-  "strasse": "Hopfenstraße 16",
-  "plz": "91207",
-  "lat": 49.54924,
-  "lon": 11.26937,
-  "web": "",
-  "menu": "",
-  "tel": "",
-  "preis": null,
-  "bestaetigt": null,
-  "status": "plausibel",
-  "preis_quelle": ""
- },
- {
   "name": "Kuckucksklause",
   "stadt": "Forchheim",
   "strasse": "Hutstraße 5",
