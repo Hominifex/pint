@@ -785,21 +785,6 @@
   "preis_quelle": ""
  },
  {
-  "name": "Creek Lane Irish Pub",
-  "stadt": "Schwabach",
-  "strasse": "Bachgasse 12",
-  "plz": "91126",
-  "lat": 49.33002,
-  "lon": 11.02065,
-  "web": "",
-  "menu": "",
-  "tel": "",
-  "preis": null,
-  "bestaetigt": null,
-  "status": "plausibel",
-  "preis_quelle": ""
- },
- {
   "name": "Kuckucksklause",
   "stadt": "Forchheim",
   "strasse": "Hutstraße 5",
